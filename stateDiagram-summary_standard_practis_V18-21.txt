@@ -1,0 +1,181 @@
+STATE DIAGRAM (SINGLE SOURCE OF TRUTH) — Hybrid Intelligence Mentor (HIM)
+File: State Diagram.txt
+Version: v22.0.0 (Governance Lock + Progression v18–v21 Consolidated)
+Date: 2026-03-02 (Asia/Bangkok) | Generated: 2026-03-02 10:07:52
+
+================================================================================
+0) GOVERNANCE (กฎควบคุมความงง / ห้ามสร้างไฟล์มั่ว)
+================================================================================
+Goal: ให้ไฟล์นี้เป็น “Single Source of Truth (SSOT)” สำหรับสถานะโปรเจกต์
+
+RULES (ใช้จริง):
+R0) อนุญาตให้มีไฟล์สถานะหลัก “State Diagram.txt” เพียงไฟล์เดียว
+    - stateDiagram-v18..v21.txt = archive/reference เท่านั้น ห้ามใช้อ้างเป็นสถานะปัจจุบัน
+R1) การเปลี่ยนสถานะต้องทำผ่าน commit เดียวกันกับ code ที่เปลี่ยน
+R2) ห้ามแก้ dashboard ก่อน P0 เสร็จ (event-based commissioning) เพราะจะวัดผลผิด
+R3) ทุกครั้งที่แก้ระบบ ต้องอัปเดต:
+    - A) CURRENT TRUTH (Section 2)
+    - B) NEXT TASKS (Section 6)
+    - C) FILE STATES (Section 4)
+
+================================================================================
+1) PROGRESSION RECORD (v18 → v21) — สรุปความจริงจากไฟล์ archive
+================================================================================
+v18:
+- engine v2.12.3 stable (breakout logic + gates + audit) แต่ commissioning นับ “evaluation” ทำให้สถิติหลอก
+- symptom: total~401 / buy~401 / prox_bypass~401 (ตลาดสถานการณ์เดียว + log ซ้ำ)
+
+v19:
+- เริ่มชัดเรื่อง regime/router + gate structure แต่ยังไม่แก้ event counting
+
+v20:
+- เพิ่ม orchestration layer (mentor_executor/risk/api wiring) แต่ยังไม่จบ tick freshness + event counting
+
+v21:
+- ✅ FIX: tick_age_sec ใช้ mt5.time_current() เทียบ tick.time (จาก -7200 → 0.0)
+- ✅ LIVE plumbing ผ่าน (terminal/account trade_allowed True)
+- ❗ ยังไม่เข้า order เพราะ blocked_by gates จริง (supertrend_conflict, no_vol_expansion)
+- 🔴 commissioning.jsonl ยัง duplicate (evaluation-based)
+
+================================================================================
+2) CURRENT TRUTH (สถานะปัจจุบันที่ยึดเป็นความจริง)
+================================================================================
+2.1 Infrastructure / MT5
+- Status: ✅ Stable
+- Evidence targets:
+  - mt5.initialize() = True
+  - terminal.trade_allowed = True
+  - account.trade_allowed = True
+  - tick_age_sec >= 0 และ <= tick_max_age_sec
+
+2.2 Core Signal Engine (engine.py)
+- Status: ✅ Logic stable (breakout/sideway gates ทำงาน)
+- Reality:
+  - “ไม่เข้าเทรด” ส่วนใหญ่ = gates block (ไม่ใช่ bug execution)
+
+2.3 Commissioning / Statistics
+- Status: 🔴 Incorrect (นับ evaluation ไม่ใช่ event)
+- Impact:
+  - ค่า counters ใช้ optimize ไม่ได้
+  - ทำให้ทีมสับสนว่า “ระบบ bias / ระบบเสีย” ทั้งที่จริง log method ผิด
+
+2.4 Dashboard / API
+- Status: 🟡 Deferred (ทำทีหลัง)
+- Policy:
+  - ทำต่อหลัง P0 เสร็จเท่านั้น (เพื่อให้ data ที่โชว์เป็น event จริง)
+
+================================================================================
+3) TECHNICAL INDICATORS + TOOLS (แกนระบบ)
+================================================================================
+Indicators:
+- ATR (Wilder): basis volatility + SL buffer
+- ADX (Wilder): trend strength + proximity override + retest bypass
+- Bollinger Bands: BB width / ATR -> volatility expansion gate (bb_width_atr_min)
+- Supertrend: direction filter + conflict detection
+- Structure/BOS: breakout trigger
+- RR floor: min_rr + epsilon
+
+Tools:
+- MetaTrader5 Python API
+- JSON config + resolver (dict in/out)
+- JSONL logs (commissioning/audit)
+- Flask API server (ops endpoints)
+- Telegram notifier (ops)
+
+================================================================================
+4) FILE STATES (ไฟล์หลัก + หน้าที่ + สถานะ + dependency)
+================================================================================
+Legend: ✅ Done | 🟡 In Progress | ⏳ Pending | 🔴 Issues
+
+4.1 Core
+- engine.py : ✅ Done
+  - Role: generate signal package + gates + entry/sl/tp/rr + audit context
+  - Depends on: config_resolver.py + mt5 data feed
+- mentor_executor.py : 🟡 In Progress
+  - Role: orchestrate engine -> AI confirm -> validator/risk -> execute or skip
+  - Depends on: engine.py, ai_bridge_v1.py, validator/risk modules, MT5 adapter
+
+4.2 Config
+- config.json : ✅ Done (โหลดได้)
+- config_resolver.py : ✅ Done (ต้องให้ทุก caller ส่ง dict ไม่ใช่ path string)
+
+4.3 Commissioning
+- commissioning_runner.py : 🟡 In Progress
+  - Role: loop runner + tick freshness guard + call mentor_executor
+- logs/commissioning.jsonl : 🔴 Issues
+  - Role: statistics log
+  - Problem: duplicate evaluation; not event-based
+
+4.4 API / Dashboard (Deferred until P0 done)
+- api_server.py : 🟡 In Progress (ต้อง sync schema + mt5 snapshot)
+- dashboard.html / dashboard.py : 🟡 In Progress
+
+4.5 Validation / Risk / AI
+- validator_v1_0.py : 🟡 In Progress
+- risk_guard_v1_0.py : 🟡 In Progress
+- ai_bridge_v1.py : ✅ Done (confirm-only transport)
+- telegram_notifier.py : 🟡 In Progress
+
+4.6 Tests
+- tests/ : 🟡 In Progress
+  - Must-have: event gating regression, tick freshness regression, validator invariants
+
+================================================================================
+5) DEPENDENCY ORDER (ทำอะไรก่อน-หลัง)
+================================================================================
+[*] --> config.json + config_resolver.py (✅)
+    --> engine.py (✅)
+    --> (validator_v1_0.py + risk_guard_v1_0.py) (🟡)
+    --> mentor_executor.py (🟡)
+    --> commissioning_runner.py (🟡)
+    --> logs/commissioning.jsonl (🔴)  <-- ต้องแก้ด้วย P0 event gating
+    --> api_server.py + dashboard (🟡)  <-- ทำหลัง P0
+
+================================================================================
+6) NEXT TASKS (Standard Practice Roadmap — เดินหน้าแบบไม่กระจาย)
+================================================================================
+P0 (BLOCKER): Event-Based Commissioning v2.12.4
+Goal: เปลี่ยนการนับจาก “evaluation” -> “event”
+Definition ของ event (ขั้นต่ำ):
+- NEW_BAR: bar_time เปลี่ยน (ต่อ symbol + TF ที่กำหนด)
+- SIGNAL_CHANGE: signature เปลี่ยน (direction/blocked_by/entry key เปลี่ยน)
+
+Deliverables:
+D1) commission_event_state (last_bar_time, last_signature) เก็บใน runner
+D2) logs/commissioning_events.jsonl บันทึกเฉพาะตอน event เกิด
+D3) สรุป counters เป็น event-counts
+D4) tests/test_event_gating.py regression
+
+P1: Strategy Gate Observability (หลัง P0)
+- breakdown: supertrend_conflict มาจาก TF ไหน
+- no_vol_expansion: bb_width_atr เทียบ threshold ด้วย evidence
+
+P2: Dashboard / API (หลัง P0)
+- UI แสดง event ล่าสุด (ไม่ใช่ evaluation loop)
+- schema /api/status standard (มี mt5 block + enable_execution + mode)
+
+================================================================================
+7) OPERATOR RUN ORDER (ใช้งานจริง)
+================================================================================
+1) เปิด MT5 (Login + GOLD tick วิ่ง + AlgoTrading ON)
+2) Terminal #1:
+   python api_server.py
+3) เปิด Dashboard (หลัง P0 จะ meaningful):
+   http://127.0.0.1:5000/
+4) Terminal #2:
+   python commissioning_runner.py
+5) Monitor:
+   - logs/commissioning_events.jsonl (หลัง P0)
+   - blocked_by breakdown
+   - order_send only when CONFIRM + enable_execution=true
+
+================================================================================
+8) GIT COMMAND ORDER (มาตรฐาน)
+================================================================================
+cd C:\Hybrid_Intelligence_Mentor
+git status
+git add .
+git commit -m "state: lock SSOT v22 + proceed P0 event-based commissioning"
+git push origin main
+
+END OF FILE

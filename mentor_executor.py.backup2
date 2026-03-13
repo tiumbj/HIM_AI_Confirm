@@ -1,0 +1,955 @@
+"""
+Hybrid Intelligence Mentor (HIM) - Mentor & Executor Module
+Connectivity management, AI verification, mentorship logic, and MT5 execution
+"""
+
+import MetaTrader5 as mt5
+import requests
+import time
+import asyncio
+from datetime import datetime
+from typing import Dict, Optional, Any, List
+from dataclasses import dataclass
+import json
+import logging
+from threading import Thread, Event
+
+from config import (
+    MT5_LOGIN, MT5_PASS, MT5_SERVER,
+    TELEGRAM_TOKEN, CHAT_ID,
+    AI_API_URL, AI_API_KEY, AI_MODEL, AI_MAX_TOKENS, AI_TEMPERATURE,
+    SYMBOL, TIMEFRAMES, RISK, SYSTEM, TELEGRAM_TEMPLATES,
+    validate_config, get_lot_size
+)
+
+from engine import TradingEngine, ConfluenceAnalysis, TechnicalSnapshot
+
+
+# ============================================================================
+# LOGGING CONFIGURATION
+# ============================================================================
+logging.basicConfig(
+    level=getattr(logging, SYSTEM.LOG_LEVEL),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(SYSTEM.LOG_FILE),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger('HIM_System')
+
+
+# ============================================================================
+# DATA CLASSES
+# ============================================================================
+@dataclass
+class AIVerification:
+    """AI verification result"""
+    approved: bool
+    confidence: float
+    reasoning: str
+    suggestions: str
+    timestamp: datetime
+
+
+@dataclass
+class TradeExecution:
+    """Trade execution result"""
+    success: bool
+    ticket: int
+    symbol: str
+    type: str
+    volume: float
+    entry_price: float
+    stop_loss: float
+    take_profit: float
+    timestamp: datetime
+    error_message: Optional[str] = None
+
+
+# ============================================================================
+# CONNECTIVITY MANAGER CLASS
+# ============================================================================
+class ConnectivityManager:
+    """Manages MT5 connection with auto-reconnect and heartbeat"""
+    
+    def __init__(self):
+        self.connected = False
+        self.heartbeat_thread = None
+        self.stop_heartbeat = Event()
+        self.reconnect_attempts = 0
+        
+    def initialize_mt5(self) -> bool:
+        """Initialize MT5 connection with credentials"""
+        try:
+            # Shutdown any existing connection
+            mt5.shutdown()
+            
+                        # Initialize MT5
+            if not mt5.initialize():
+                logger.error("MT5 initialize() failed")
+                return False
+            
+            # Login to account
+            authorized = mt5.login(
+                login=MT5_LOGIN,
+                password=MT5_PASS,
+                server=MT5_SERVER
+            )
+            
+            if not authorized:
+                logger.error(f"MT5 login failed: {mt5.last_error()}")
+                mt5.shutdown()
+                return False
+            
+            # Verify symbol
+            symbol_info = mt5.symbol_info(SYMBOL)
+            if symbol_info is None:
+                logger.error(f"Symbol {SYMBOL} not found")
+                mt5.shutdown()
+                return False
+            
+            # Enable symbol if not visible
+            if not symbol_info.visible:
+                if not mt5.symbol_select(SYMBOL, True):
+                    logger.error(f"Failed to select symbol {SYMBOL}")
+                    mt5.shutdown()
+                    return False
+            
+            self.connected = True
+            self.reconnect_attempts = 0
+            logger.info(f"[OK] MT5 connected successfully to {MT5_SERVER}")
+            logger.info(f"   Account: {MT5_LOGIN}")
+            logger.info(f"   Symbol: {SYMBOL}")
+            
+            # Start heartbeat monitoring
+            self.start_heartbeat()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"MT5 initialization error: {str(e)}")
+            return False
+    
+    def check_connection(self) -> bool:
+        """Check if MT5 connection is alive"""
+        try:
+            # Try to get account info
+            account_info = mt5.account_info()
+            if account_info is None:
+                logger.warning("MT5 connection lost - account_info returned None")
+                self.connected = False
+                return False
+            
+            # Check terminal connection
+            if not mt5.terminal_info().connected:
+                logger.warning("MT5 terminal not connected")
+                self.connected = False
+                return False
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Connection check error: {str(e)}")
+            self.connected = False
+            return False
+    
+    def reconnect(self) -> bool:
+        """Attempt to reconnect with exponential backoff"""
+        if self.reconnect_attempts >= SYSTEM.RECONNECT_ATTEMPTS:
+            logger.error(f"[ERROR] Max reconnection attempts ({SYSTEM.RECONNECT_ATTEMPTS}) reached")
+            return False
+        
+        self.reconnect_attempts += 1
+        delay = SYSTEM.RECONNECT_DELAY * (SYSTEM.RECONNECT_BACKOFF ** (self.reconnect_attempts - 1))
+        
+        logger.info(f"[RETRY] Reconnection attempt {self.reconnect_attempts}/{SYSTEM.RECONNECT_ATTEMPTS}")
+        logger.info(f"   Waiting {delay:.1f} seconds...")
+        
+        time.sleep(delay)
+        
+        return self.initialize_mt5()
+    
+    def start_heartbeat(self):
+        """Start heartbeat monitoring thread"""
+        if self.heartbeat_thread is not None and self.heartbeat_thread.is_alive():
+            return
+        
+        self.stop_heartbeat.clear()
+        self.heartbeat_thread = Thread(target=self._heartbeat_loop, daemon=True)
+        self.heartbeat_thread.start()
+        logger.info("[HEARTBEAT] Heartbeat monitoring started")
+    
+    def stop_heartbeat_monitoring(self):
+        """Stop heartbeat monitoring"""
+        self.stop_heartbeat.set()
+        if self.heartbeat_thread is not None:
+            self.heartbeat_thread.join(timeout=5)
+        logger.info("[HEARTBEAT] Heartbeat monitoring stopped")
+    
+    def _heartbeat_loop(self):
+        """Heartbeat monitoring loop"""
+        while not self.stop_heartbeat.is_set():
+            try:
+                if not self.check_connection():
+                    logger.warning("[WARNING] Heartbeat detected connection loss")
+                    
+                    # Attempt reconnection
+                    if self.reconnect():
+                        logger.info("[OK] Reconnection successful")
+                    else:
+                        logger.error("[ERROR] Reconnection failed")
+                else:
+                    logger.debug("[HEARTBEAT] Heartbeat: Connection healthy")
+                
+                # Wait for next heartbeat
+                self.stop_heartbeat.wait(SYSTEM.HEARTBEAT_INTERVAL)
+                
+            except Exception as e:
+                logger.error(f"Heartbeat error: {str(e)}")
+                self.stop_heartbeat.wait(SYSTEM.HEARTBEAT_INTERVAL)
+    
+    def shutdown(self):
+        """Gracefully shutdown MT5 connection"""
+        self.stop_heartbeat_monitoring()
+        mt5.shutdown()
+        self.connected = False
+        logger.info("[OK] MT5 connection closed")
+
+
+# ============================================================================
+# INTELLIGENT MENTOR CLASS
+# ============================================================================
+class IntelligentMentor:
+    """AI-powered trading mentor with verification and execution"""
+    
+    def __init__(self):
+        self.connectivity = ConnectivityManager()
+        self.engine = TradingEngine()
+        self.daily_trade_count = 0
+        self.last_trade_date = None
+        
+    def initialize(self) -> bool:
+        """Initialize the mentor system"""
+        logger.info("[INIT] Initializing Hybrid Intelligence Mentor System...")
+        
+        # Validate configuration
+        if not validate_config():
+            logger.error("[ERROR] Configuration validation failed")
+            return False
+        
+        # Initialize MT5
+        if not self.connectivity.initialize_mt5():
+            logger.error("[ERROR] MT5 initialization failed")
+            return False
+        
+        # Test Telegram connection
+        if not self._test_telegram():
+            logger.warning("[WARNING] Telegram connection test failed")
+        
+        logger.info("[OK] Hybrid Intelligence Mentor System initialized")
+        return True
+    
+    def _test_telegram(self) -> bool:
+        """Test Telegram bot connection"""
+        try:
+            message = "🤖 HIM System Online\n\nHybrid Intelligence Mentor is now active and monitoring XAUUSD."
+            self.send_telegram_message(message)
+            return True
+        except Exception as e:
+            logger.error(f"Telegram test failed: {str(e)}")
+            return False
+    
+    # ========================================================================
+    # AI VERIFICATION
+    # ========================================================================
+    
+    def ask_ai_confirmation(self, confluence: ConfluenceAnalysis, 
+                           htf: TechnicalSnapshot, mtf: TechnicalSnapshot, 
+                           ltf: TechnicalSnapshot, news: Dict[str, Any]) -> AIVerification:
+        """
+        Send technical analysis to AI for verification
+        
+        Args:
+            confluence: Confluence analysis result
+            htf: High timeframe snapshot
+            mtf: Medium timeframe snapshot
+            ltf: Low timeframe snapshot
+            news: News sentiment data
+            
+        Returns:
+            AIVerification object
+        """
+        try:
+            # Prepare context for AI
+            context = self._prepare_ai_context(confluence, htf, mtf, ltf, news)
+            
+            # Prepare AI request
+            headers = {
+                "Authorization": f"Bearer {AI_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "model": AI_MODEL,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": """You are an expert trading analyst specializing in XAUUSD (Gold). 
+Your task is to verify trading signals based on multi-timeframe technical analysis, market structure, 
+and news sentiment. Provide a confidence score (0-100%) and clear reasoning for your decision.
+Be critical and conservative - only approve high-probability setups."""
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""Analyze this trading setup and provide verification:
+
+{context}
+
+Please provide:
+1. APPROVED or REJECTED
+2. Confidence score (0-100%)
+3. Your reasoning (2-3 sentences)
+4. Any suggestions for improvement"""
+                    }
+                ],
+                "max_tokens": AI_MAX_TOKENS,
+                "temperature": AI_TEMPERATURE
+            }
+            
+            # Make API request
+            response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+            
+            # Parse AI response
+            approved = "APPROVED" in ai_response.upper() and "REJECTED" not in ai_response.upper()
+            
+            # Extract confidence score
+            confidence = self._extract_confidence(ai_response)
+            
+            # Extract reasoning and suggestions
+            lines = ai_response.split('\n')
+            reasoning = ""
+            suggestions = ""
+            
+            for i, line in enumerate(lines):
+                if 'reasoning' in line.lower() or 'reason' in line.lower():
+                    reasoning = '\n'.join(lines[i:i+3])
+                if 'suggestion' in line.lower():
+                    suggestions = '\n'.join(lines[i:])
+            
+            if not reasoning:
+                reasoning = ai_response[:200]
+            
+            logger.info(f"🤖 AI Verification: {'APPROVED' if approved else 'REJECTED'} ({confidence:.1f}%)")
+            
+            return AIVerification(
+                approved=approved,
+                confidence=confidence,
+                reasoning=reasoning.strip(),
+                suggestions=suggestions.strip(),
+                timestamp=datetime.now()
+            )
+            
+        except Exception as e:
+            logger.error(f"AI verification error: {str(e)}")
+            # Return conservative rejection on error
+            return AIVerification(
+                approved=False,
+                confidence=0.0,
+                reasoning=f"AI verification failed: {str(e)}",
+                suggestions="Manual review required",
+                timestamp=datetime.now()
+            )
+    
+    def _prepare_ai_context(self, confluence: ConfluenceAnalysis,
+                           htf: TechnicalSnapshot, mtf: TechnicalSnapshot,
+                           ltf: TechnicalSnapshot, news: Dict[str, Any]) -> str:
+        """Prepare context data for AI analysis"""
+        
+        context_parts = [
+            f"SIGNAL TYPE: {confluence.signal_type}",
+            f"CONFLUENCE SCORE: {confluence.total_score:.2f}",
+            f"",
+            f"MULTI-TIMEFRAME ANALYSIS:",
+            f"  HTF ({htf.timeframe}): {htf.trend.upper()} | EMA: {htf.ema_signal}",
+            f"  MTF ({mtf.timeframe}): {mtf.trend.upper()} | RSI: {mtf.rsi:.2f}",
+            f"  LTF ({ltf.timeframe}): {ltf.trend.upper()} | MACD: {'Bullish' if ltf.macd_histogram > 0 else 'Bearish'}",
+            f"",
+            f"ENTRY DETAILS:",
+            f"  Entry Price: {confluence.entry_price:.2f}",
+            f"  Stop Loss: {confluence.stop_loss:.2f}",
+            f"  Take Profit: {confluence.take_profit:.2f}",
+            f"  Risk:Reward: 1:{confluence.risk_reward:.2f}",
+            f"",
+            f"MARKET STRUCTURE:",
+            f"  BOS Detected: {ltf.market_structure.bos_detected}",
+            f"  CHoCH Detected: {ltf.market_structure.choch_detected}",
+            f"  Order Blocks: {len(ltf.market_structure.order_blocks)}",
+            f"  Fair Value Gaps: {len(ltf.market_structure.fvgs)}",
+            f"",
+            f"PRICE ACTION:",
+            f"  Pin Bar: {'Bullish' if ltf.price_action.pinbar_bullish else 'Bearish' if ltf.price_action.pinbar_bearish else 'None'}",
+            f"  Liquidity Sweep: {'High' if ltf.price_action.liquidity_sweep_high else 'Low' if ltf.price_action.liquidity_sweep_low else 'None'}",
+            f"  Pattern Strength: {ltf.price_action.pattern_strength:.2f}",
+            f"",
+            f"NEWS SENTIMENT:",
+            f"  Sentiment: {news['sentiment'].upper()}",
+            f"  Score: {news['score']:.2f}",
+            f"  News Count: {news['news_count']}",
+            f"",
+            f"TOP CONFLUENCE FACTORS:"
+        ]
+        
+        # Add top 5 confluence components
+        sorted_components = sorted(confluence.components.items(), 
+                                   key=lambda x: abs(x[1]), reverse=True)
+        for factor, score in sorted_components[:5]:
+            if abs(score) > 0.1:
+                context_parts.append(f"  • {factor.replace('_', ' ').title()}: {score:+.2f}")
+        
+        return "\n".join(context_parts)
+    
+    def _extract_confidence(self, text: str) -> float:
+        """Extract confidence percentage from AI response"""
+        import re
+        
+        # Look for patterns like "85%", "confidence: 75", etc.
+        patterns = [
+            r'(\d+)%',
+            r'confidence[:\s]+(\d+)',
+            r'score[:\s]+(\d+)'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                return float(match.group(1))
+        
+        # Default to 50% if not found
+        return 50.0
+    
+    # ========================================================================
+    # MENTOR MESSAGE GENERATION
+    # ========================================================================
+    
+    def generate_mentor_message(self, confluence: ConfluenceAnalysis,
+                                ai_verification: AIVerification,
+                                execution: Optional[TradeExecution] = None) -> str:
+        """
+        Generate comprehensive mentor message for Telegram
+        
+        Args:
+            confluence: Confluence analysis
+            ai_verification: AI verification result
+            execution: Trade execution result (if executed)
+            
+        Returns:
+            Formatted mentor message
+        """
+        parts = []
+        
+        # Header
+        parts.append(TELEGRAM_TEMPLATES['signal_header'])
+        parts.append(f"🕐 <b>Time:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
+        
+        # Signal Overview
+        signal_emoji = "🟢" if confluence.signal_type == "BUY" else "🔴" if confluence.signal_type == "SELL" else "⚪"
+        parts.append(f"{signal_emoji} <b>SIGNAL:</b> {confluence.signal_type}")
+        parts.append(f"⚖️ <b>Confluence Score:</b> {confluence.total_score:.2f}")
+        parts.append(f"[PROFIT] <b>Entry:</b> {confluence.entry_price:.2f}")
+        parts.append(f"[STOP] <b>Stop Loss:</b> {confluence.stop_loss:.2f}")
+        parts.append(f"[SIGNAL] <b>Take Profit:</b> {confluence.take_profit:.2f}")
+        parts.append(f"[ANALYSIS] <b>Risk:Reward:</b> 1:{confluence.risk_reward:.2f}\n")
+        
+        # Mentor Explanation
+        parts.append(TELEGRAM_TEMPLATES['mentor_intro'])
+        parts.append(confluence.explanation)
+        parts.append("")
+        
+        # AI Verification
+        parts.append(TELEGRAM_TEMPLATES['ai_verdict'])
+        ai_emoji = "[OK]" if ai_verification.approved else "[ERROR]"
+        parts.append(f"{ai_emoji} <b>Status:</b> {'APPROVED' if ai_verification.approved else 'REJECTED'}")
+        parts.append(f"[SIGNAL] <b>Confidence:</b> {ai_verification.confidence:.1f}%")
+        parts.append(f"💭 <b>AI Reasoning:</b>\n{ai_verification.reasoning}")
+        
+        if ai_verification.suggestions:
+            parts.append(f"\n💡 <b>Suggestions:</b>\n{ai_verification.suggestions}")
+        parts.append("")
+        
+        # Execution Details
+        if execution is not None:
+            parts.append(TELEGRAM_TEMPLATES['execution'])
+            if execution.success:
+                parts.append(f"[OK] <b>Trade Executed Successfully</b>")
+                parts.append(f"🎫 <b>Ticket:</b> {execution.ticket}")
+                parts.append(f"📦 <b>Volume:</b> {execution.volume:.2f} lots")
+                parts.append(f"💵 <b>Execution Price:</b> {execution.entry_price:.2f}")
+                parts.append(f"⏰ <b>Time:</b> {execution.timestamp.strftime('%H:%M:%S')}")
+            else:
+                parts.append(f"[ERROR] <b>Trade Execution Failed</b>")
+                parts.append(f"[WARNING] <b>Error:</b> {execution.error_message}")
+        elif ai_verification.approved and ai_verification.confidence >= RISK.AI_CONFIDENCE_THRESHOLD:
+            parts.append(f"⏳ <b>Awaiting Execution...</b>")
+        else:
+            parts.append(f"🚫 <b>Trade Not Executed</b>")
+            if not ai_verification.approved:
+                parts.append(f"   Reason: AI verification rejected")
+            else:
+                parts.append(f"   Reason: AI confidence ({ai_verification.confidence:.1f}%) below threshold ({RISK.AI_CONFIDENCE_THRESHOLD}%)")
+        
+        parts.append(f"\n{'='*40}")
+        parts.append(f"🤖 <i>Hybrid Intelligence Mentor</i>")
+        
+        return "\n".join(parts)
+    
+    # ========================================================================
+    # TRADE EXECUTION
+    # ========================================================================
+    
+    def execute_order(self, symbol: str, signal_type: str, 
+                     confluence: ConfluenceAnalysis) -> TradeExecution:
+        """
+        Execute trade on MT5 with comprehensive error handling
+        
+        Args:
+            symbol: MT5 symbol
+            signal_type: "BUY" or "SELL"
+            confluence: Confluence analysis with entry/SL/TP
+            
+        Returns:
+            TradeExecution object
+        """
+        try:
+            # Check connection
+            if not self.connectivity.check_connection():
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=0.0,
+                    entry_price=0.0,
+                    stop_loss=0.0,
+                    take_profit=0.0,
+                    timestamp=datetime.now(),
+                    error_message="MT5 connection lost"
+                )
+            
+            # Check daily trade limit
+            if not self._check_trade_limits():
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=0.0,
+                    entry_price=0.0,
+                    stop_loss=0.0,
+                    take_profit=0.0,
+                    timestamp=datetime.now(),
+                    error_message=f"Daily trade limit ({RISK.MAX_DAILY_TRADES}) reached"
+                )
+            
+            # Check open positions
+            positions = mt5.positions_get(symbol=symbol)
+            if positions is not None and len(positions) >= RISK.MAX_OPEN_POSITIONS:
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=0.0,
+                    entry_price=0.0,
+                    stop_loss=0.0,
+                    take_profit=0.0,
+                    timestamp=datetime.now(),
+                    error_message=f"Maximum open positions ({RISK.MAX_OPEN_POSITIONS}) reached"
+                )
+            
+            # Get symbol info
+            symbol_info = mt5.symbol_info(symbol)
+            if symbol_info is None:
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=0.0,
+                    entry_price=0.0,
+                    stop_loss=0.0,
+                    take_profit=0.0,
+                    timestamp=datetime.now(),
+                    error_message=f"Symbol {symbol} not found"
+                )
+            
+            # Check spread
+            spread = (symbol_info.ask - symbol_info.bid) / symbol_info.point
+            if spread > RISK.MAX_SPREAD:
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=0.0,
+                    entry_price=0.0,
+                    stop_loss=0.0,
+                    take_profit=0.0,
+                    timestamp=datetime.now(),
+                    error_message=f"Spread too high: {spread:.1f} points"
+                )
+            
+            # Calculate lot size
+            account_info = mt5.account_info()
+            risk_amount = account_info.balance * (RISK.RISK_PERCENT / 100)
+            sl_points = abs(confluence.entry_price - confluence.stop_loss) / symbol_info.point
+            lot_size = get_lot_size(symbol, risk_amount, sl_points)
+            
+            if lot_size < symbol_info.volume_min:
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=0.0,
+                    entry_price=0.0,
+                    stop_loss=0.0,
+                    take_profit=0.0,
+                    timestamp=datetime.now(),
+                    error_message=f"Calculated lot size ({lot_size:.2f}) below minimum ({symbol_info.volume_min})"
+                )
+            
+            # Prepare order request
+            order_type = mt5.ORDER_TYPE_BUY if signal_type == "BUY" else mt5.ORDER_TYPE_SELL
+            price = symbol_info.ask if signal_type == "BUY" else symbol_info.bid
+            
+            # Normalize prices
+            price = round(price, symbol_info.digits)
+            sl = round(confluence.stop_loss, symbol_info.digits)
+            tp = round(confluence.take_profit, symbol_info.digits)
+            
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "symbol": symbol,
+                "volume": lot_size,
+                "type": order_type,
+                "price": price,
+                "sl": sl,
+                "tp": tp,
+                "deviation": RISK.MAX_SLIPPAGE,
+                "magic": 2345600,
+                "comment": "HIM_System",
+                "type_time": mt5.ORDER_TIME_GTC,
+                "type_filling": mt5.ORDER_FILLING_IOC,
+            }
+            
+            # Send order
+            logger.info(f"📤 Sending order: {signal_type} {lot_size} lots @ {price:.2f}")
+            result = mt5.order_send(request)
+            
+            if result is None:
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=lot_size,
+                    entry_price=price,
+                    stop_loss=sl,
+                    take_profit=tp,
+                    timestamp=datetime.now(),
+                    error_message="order_send() returned None"
+                )
+            
+            # Check result
+            if result.retcode != mt5.TRADE_RETCODE_DONE:
+                error_msg = f"Order failed: {result.retcode} - {result.comment}"
+                logger.error(f"[ERROR] {error_msg}")
+                return TradeExecution(
+                    success=False,
+                    ticket=0,
+                    symbol=symbol,
+                    type=signal_type,
+                    volume=lot_size,
+                    entry_price=price,
+                    stop_loss=sl,
+                    take_profit=tp,
+                    timestamp=datetime.now(),
+                    error_message=error_msg
+                )
+            
+            # Success
+            self._increment_trade_count()
+            logger.info(f"[OK] Order executed: Ticket #{result.order}")
+            
+            return TradeExecution(
+                success=True,
+                ticket=result.order,
+                symbol=symbol,
+                type=signal_type,
+                volume=lot_size,
+                entry_price=result.price,
+                stop_loss=sl,
+                take_profit=tp,
+                timestamp=datetime.now()
+            )
+            
+        except Exception as e:
+            logger.error(f"[ERROR] Execution error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
+            return TradeExecution(
+                success=False,
+                ticket=0,
+                symbol=symbol,
+                type=signal_type,
+                volume=0.0,
+                entry_price=0.0,
+                stop_loss=0.0,
+                take_profit=0.0,
+                timestamp=datetime.now(),
+                error_message=str(e)
+            )
+    
+    def _check_trade_limits(self) -> bool:
+        """Check if daily trade limits are respected"""
+        today = datetime.now().date()
+        
+        # Reset counter if new day
+        if self.last_trade_date != today:
+            self.daily_trade_count = 0
+            self.last_trade_date = today
+        
+        return self.daily_trade_count < RISK.MAX_DAILY_TRADES
+    
+    def _increment_trade_count(self):
+        """Increment daily trade counter"""
+        today = datetime.now().date()
+        
+        if self.last_trade_date != today:
+            self.daily_trade_count = 1
+            self.last_trade_date = today
+        else:
+            self.daily_trade_count += 1
+    
+    # ========================================================================
+    # TELEGRAM INTEGRATION
+    # ========================================================================
+    
+    def send_telegram_message(self, message: str, parse_mode: str = "HTML") -> bool:
+        """
+        Send message to Telegram
+        
+        Args:
+            message: Message text
+            parse_mode: Parse mode (HTML or Markdown)
+            
+        Returns:
+            Success status
+        """
+        try:
+            url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+            
+            payload = {
+                "chat_id": CHAT_ID,
+                "text": message,
+                "parse_mode": parse_mode
+            }
+            
+            response = requests.post(url, json=payload, timeout=10)
+            response.raise_for_status()
+            
+            logger.debug("📱 Telegram message sent successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"[ERROR] Telegram error: {str(e)}")
+            return False
+    
+    # ========================================================================
+    # MAIN TRADING LOOP
+    # ========================================================================
+    
+    def analyze_and_trade(self):
+        """Main analysis and trading logic"""
+        try:
+            logger.info("\n" + "="*60)
+            logger.info("🔍 Starting market analysis...")
+            
+            # Fetch news sentiment
+            logger.info("📰 Fetching news sentiment...")
+            news_sentiment = self.engine.get_news_sentiment()
+            logger.info(f"   Sentiment: {news_sentiment['sentiment']} (Score: {news_sentiment['score']:.2f})")
+            
+            # Generate technical snapshots
+            logger.info("[ANALYSIS] Generating multi-timeframe analysis...")
+            htf_snapshot = self.engine.generate_technical_snapshot(SYMBOL, TIMEFRAMES['HTF'])
+            mtf_snapshot = self.engine.generate_technical_snapshot(SYMBOL, TIMEFRAMES['MTF'])
+            ltf_snapshot = self.engine.generate_technical_snapshot(SYMBOL, TIMEFRAMES['LTF'])
+            
+            logger.info(f"   HTF ({htf_snapshot.timeframe}): {htf_snapshot.trend.upper()}")
+            logger.info(f"   MTF ({mtf_snapshot.timeframe}): {mtf_snapshot.trend.upper()}")
+            logger.info(f"   LTF ({ltf_snapshot.timeframe}): {ltf_snapshot.trend.upper()}")
+            
+            # Check confluence
+            logger.info("⚖️ Calculating confluence...")
+            confluence = self.engine.check_confluence(
+                htf_snapshot, mtf_snapshot, ltf_snapshot, news_sentiment
+            )
+            
+            logger.info(f"   Signal: {confluence.signal_type}")
+            logger.info(f"   Confluence Score: {confluence.total_score:.2f}")
+            logger.info(f"   Threshold: {RISK.CONFLUENCE_THRESHOLD}")
+            
+            # Check if signal meets threshold
+            if confluence.signal_type == "NONE":
+                logger.info("ℹ️ No trading signal detected")
+                return
+            
+            # Ask AI for verification
+            logger.info("🤖 Requesting AI verification...")
+            ai_verification = self.ask_ai_confirmation(
+                confluence, htf_snapshot, mtf_snapshot, ltf_snapshot, news_sentiment
+            )
+            
+            logger.info(f"   AI Decision: {'APPROVED' if ai_verification.approved else 'REJECTED'}")
+            logger.info(f"   Confidence: {ai_verification.confidence:.1f}%")
+            
+            # Execute trade if approved
+            execution = None
+            if ai_verification.approved and ai_verification.confidence >= RISK.AI_CONFIDENCE_THRESHOLD:
+                logger.info("[OK] AI approved - Executing trade...")
+                execution = self.execute_order(SYMBOL, confluence.signal_type, confluence)
+                
+                if execution.success:
+                    logger.info(f"[OK] Trade executed successfully: Ticket #{execution.ticket}")
+                else:
+                    logger.error(f"[ERROR] Trade execution failed: {execution.error_message}")
+            else:
+                logger.info("🚫 Trade not executed:")
+                if not ai_verification.approved:
+                    logger.info("   Reason: AI rejected the signal")
+                else:
+                    logger.info(f"   Reason: AI confidence ({ai_verification.confidence:.1f}%) below threshold")
+            
+            # Generate and send mentor message
+            logger.info("📱 Generating mentor message...")
+            mentor_message = self.generate_mentor_message(confluence, ai_verification, execution)
+            self.send_telegram_message(mentor_message)
+            
+            logger.info("="*60 + "\n")
+            
+        except Exception as e:
+            logger.error(f"[ERROR] Analysis error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
+            # Send error notification
+            error_msg = f"{TELEGRAM_TEMPLATES['error']}{str(e)}\n\nTimestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            self.send_telegram_message(error_msg)
+    
+    def run_continuous(self, interval_minutes: int = 15):
+        """
+        Run continuous monitoring and trading
+        
+        Args:
+            interval_minutes: Analysis interval in minutes
+        """
+        logger.info(f"[INIT] Starting continuous trading mode (interval: {interval_minutes} min)")
+        
+        try:
+            while True:
+                self.analyze_and_trade()
+                
+                logger.info(f"⏳ Waiting {interval_minutes} minutes until next analysis...")
+                time.sleep(interval_minutes * 60)
+                
+        except KeyboardInterrupt:
+            logger.info("\n⚠️ Keyboard interrupt received - shutting down...")
+            self.shutdown()
+        except Exception as e:
+            logger.error(f"[ERROR] Critical error in continuous mode: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            self.shutdown()
+    
+    def shutdown(self):
+        """Gracefully shutdown the system"""
+        logger.info("[STOP] Shutting down Hybrid Intelligence Mentor...")
+        self.connectivity.shutdown()
+        logger.info("[OK] Shutdown complete")
+
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+def main():
+    """Main entry point"""
+    print("""
+    ╔══════════════════════════════════════════════════════════════╗
+    ║                                                              ║
+    ║        HYBRID INTELLIGENCE MENTOR (HIM) SYSTEM              ║
+    ║                                                              ║
+    ║        High-Performance AI Trading System for XAUUSD        ║
+    ║                                                              ║
+    ╚══════════════════════════════════════════════════════════════╝
+    """)
+    
+    # Create mentor instance
+    mentor = IntelligentMentor()
+    
+    # Initialize system
+    if not mentor.initialize():
+        logger.error("[ERROR] System initialization failed - exiting")
+        return
+    
+    # Display menu
+    print("\n📋 Select Mode:")
+    print("  1. Single Analysis (Run once)")
+    print("  2. Continuous Mode (Run every 15 minutes)")
+    print("  3. Custom Interval")
+    print("  4. Exit")
+    
+    try:
+        choice = input("\nEnter choice (1-4): ").strip()
+        
+        if choice == "1":
+            logger.info("[ANALYSIS] Running single analysis...")
+            mentor.analyze_and_trade()
+            logger.info("[OK] Analysis complete")
+            mentor.shutdown()
+            
+        elif choice == "2":
+            logger.info("[RETRY] Starting continuous mode (15 min interval)...")
+            mentor.run_continuous(interval_minutes=15)
+            
+        elif choice == "3":
+            interval = int(input("Enter interval in minutes: ").strip())
+            logger.info(f"[RETRY] Starting continuous mode ({interval} min interval)...")
+            mentor.run_continuous(interval_minutes=interval)
+            
+        elif choice == "4":
+            logger.info("👋 Exiting...")
+            mentor.shutdown()
+            
+        else:
+            logger.warning("[WARNING] Invalid choice - exiting")
+            mentor.shutdown()
+            
+    except KeyboardInterrupt:
+        logger.info("\n⚠️ Interrupted by user")
+        mentor.shutdown()
+    except Exception as e:
+        logger.error(f"[ERROR] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        mentor.shutdown()
+
+
+if __name__ == "__main__":
+    main()

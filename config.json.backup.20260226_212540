@@ -1,0 +1,82 @@
+[
+  {
+    "type": "decision",
+    "decision": {
+      "ts": "2026-02-26T14:20:27+00:00",
+      "approved": false,
+      "reason": "direction_none",
+      "mode": "continuation",
+      "symbol": "GOLD",
+      "side": "NONE"
+    },
+    "pkg": {
+      "symbol": "GOLD",
+      "direction": "NONE",
+      "entry_candidate": null,
+      "stop_candidate": null,
+      "tp_candidate": null,
+      "rr": 0.0,
+      "score": 0.0,
+      "confidence_py": 0,
+      "bos": false,
+      "supertrend_ok": true,
+      "context": {
+        "engine_version": "2.9.0",
+        "mode": "continuation",
+        "HTF_trend": "ranging",
+        "MTF_trend": "bearish",
+        "LTF_trend": "bearish",
+        "bias_source": "MTF_FALLBACK",
+        "direction_bias": "SELL",
+        "bos_ref_high": 5187.73,
+        "bos_ref_low": 5157.64,
+        "bos_ref": 5157.64,
+        "distance_buy": 21.409999999999854,
+        "distance_sell": 8.679999999999382,
+        "atr": 9.169427218264532,
+        "atr_period": 14,
+        "atr_sl_mult": 1.8,
+        "min_rr": 2.0,
+        "breakout_confirm_buffer_atr": 0.05,
+        "breakout_confirm_buffer_points": 0.45847136091322666,
+        "breakout_proximity_min_score": 10.0,
+        "breakout_proximity_threshold_atr": 1.5,
+        "continuation_enabled": true,
+        "continuation_require_mtf_ltf_align": true,
+        "continuation_require_htf_not_opposite": true,
+        "continuation_proximity_threshold_atr": 1.8,
+        "continuation_proximity_min_score": 20.0,
+        "breakout_state": "NONE",
+        "breakout_side": null,
+        "breakout_overshoot_points": null,
+        "retest_required": true,
+        "retest_band_atr": 0.3,
+        "retest_band": 2.75082816547936,
+        "retest_ok": false,
+        "supertrend_period": 10,
+        "supertrend_mult": 3.0,
+        "supertrend_dir": "bearish",
+        "supertrend_value": 5189.81880472037,
+        "supertrend_ok": true,
+        "proximity_score": 47.40977699657706,
+        "proximity_side": "SELL",
+        "proximity_best_dist": 8.679999999999382,
+        "proximity_threshold_points": 16.504968992876158,
+        "watch_state": "WATCH_PROXIMITY",
+        "blocked_by": "rr_too_low",
+        "timeframes": {
+          "htf": "H4",
+          "mtf": "H1",
+          "ltf": "M15"
+        },
+        "structure_sensitivity": {
+          "htf": 5,
+          "mtf": 4,
+          "ltf": 3
+        }
+      }
+    },
+    "ts": 1772115627,
+    "ts_iso": "2026-02-26 21:20:27"
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "candidates_summary": {
+    "total_candidates": 200,
+    "by_direction": {
+      "BUY": 90,
+      "SELL": 110
+    },
+    "buy_pct": "45.0%",
+    "sell_pct": "55.0%",
+    "rr_mean": 1.5000000000000702,
+    "confidence_mean": null
+  },
+  "trace_summary": {
+    "total_bars": 559,
+    "blocked_by_distribution": {
+      "None": {
+        "count": 200,
+        "pct": "35.8%"
+      },
+      "no_mean_reversion_trigger": {
+        "count": 128,
+        "pct": "22.9%"
+      },
+      "rr_too_low": {
+        "count": 105,
+        "pct": "18.8%"
+      },
+      "not_sideway_adx": {
+        "count": 54,
+        "pct": "9.7%"
+      },
+      "not_sideway_adx,not_sideway_bbwidth": {
+        "count": 39,
+        "pct": "7.0%"
+      },
+      "not_sideway_bbwidth": {
+        "count": 33,
+        "pct": "5.9%"
+      }
+    }
+  }
+}

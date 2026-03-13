@@ -1,0 +1,842 @@
+<!--
+=============================================================================
+Hybrid Intelligence Mentor (HIM) - Intelligent Trading Dashboard
+File: dashboard.html
+Path: C:\Hybrid_Intelligence_Mentor\dashboard.html
+Version: v3.1.0
+Date: 2026-03-01 (Asia/Bangkok)
+
+Changelog:
+- v3.1.0:
+  1) UX Manual Editor: modal เล็กลง + footer sticky (Save ง่าย) + font ใหญ่ขึ้น (ลดพิมพ์พลาด)
+  2) LIVE Safety: setExecution(true) ส่ง confirm_live ไป backend (รองรับ server-side confirm gate)
+  3) ADD: Telegram status แสดงใน Safety & Account (อ่านจาก /api/status -> config.telegram.enabled)
+
+Safety:
+- Dashboard เป็น UX layer (manual decision + config control)
+- LIVE ต้องยืนยัน "CONFIRM LIVE" ทุกครั้ง (UI + API)
+=============================================================================
+-->
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HIM — Intelligent Trading Dashboard v3</title>
+
+  <style>
+    :root{
+      --bg1:#0f0f1e;
+      --bg2:#1a1a2e;
+      --card:rgba(255,255,255,0.05);
+      --border:rgba(255,255,255,0.10);
+      --cyan:#00d4ff;
+      --purple:#7b2ff7;
+      --green:#00ff88;
+      --red:#ff4444;
+      --orange:#ffa500;
+      --muted:rgba(255,255,255,0.72);
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+      color:#fff;
+      padding:18px;
+    }
+    .container{ max-width: 1700px; margin:0 auto; }
+
+    .header{
+      text-align:center;
+      padding:18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+    .header h1{
+      font-size: 2.2em;
+      font-weight: 900;
+      background: linear-gradient(45deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .sub{ color: var(--muted); font-size: .95em; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .card-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size: 1.08em;
+      font-weight: 800;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+    .desc{
+      color: var(--muted);
+      font-size: .88em;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+
+    .span2{ grid-column: span 2; }
+    .span3{ grid-column: span 3; }
+
+    .kv{ display:grid; grid-template-columns: 170px 1fr; gap: 8px 12px; }
+    .k{ color: rgba(255,255,255,0.75); }
+    .v{ font-weight: 800; }
+
+    .pill{
+      display:inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .84em;
+      font-weight: 800;
+      background: rgba(0,212,255,0.14);
+      border: 1px solid rgba(0,212,255,0.32);
+      color:#fff;
+    }
+    .ok{ color: var(--green); font-weight: 900; }
+    .bad{ color: var(--red); font-weight: 900; }
+    .warn{ color: var(--orange); font-weight: 900; }
+
+    .btns{ display:flex; flex-wrap:wrap; gap: 10px; margin-top: 10px; }
+    .btn{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color:#fff;
+      cursor:pointer;
+      transition: .2s;
+      font-weight: 800;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(0,212,255,0.55); }
+    .btn.primary{
+      background: linear-gradient(45deg, rgba(0,212,255,0.85), rgba(123,47,247,0.75));
+      border-color: rgba(0,212,255,0.65);
+    }
+    .btn.good{
+      background: rgba(0,255,136,0.12);
+      border-color: rgba(0,255,136,0.45);
+    }
+    .btn.danger{
+      background: rgba(255,68,68,0.12);
+      border-color: rgba(255,68,68,0.45);
+    }
+    .btn.active{
+      box-shadow: 0 0 18px rgba(0, 212, 255, 0.28);
+      border-color: rgba(0,212,255,0.75);
+    }
+
+    .mono{
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      background: rgba(0,0,0,0.24);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 12px;
+      max-height: 420px;
+      overflow:auto;
+    }
+
+    /* Mode selector */
+    .mode-wrap{
+      display:grid;
+      grid-template-columns: 1fr 460px;
+      gap: 14px;
+    }
+    .mode-buttons{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .mode-btn{
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      cursor:pointer;
+      transition: .2s;
+      text-align:left;
+      min-height: 92px;
+    }
+    .mode-btn:hover{ transform: translateY(-1px); border-color: rgba(0,212,255,0.55); }
+    .mode-btn.active{
+      background: linear-gradient(45deg, rgba(0,212,255,0.26), rgba(123,47,247,0.18));
+      border-color: rgba(0,212,255,0.75);
+      box-shadow: 0 0 18px rgba(0,212,255,0.22);
+    }
+    .mode-name{ font-weight: 900; margin-bottom: 4px; }
+    .mode-desc{ font-size: .88em; color: var(--muted); line-height: 1.35; }
+
+    .preview{
+      background: rgba(0,0,0,0.26);
+      border: 1px solid rgba(0,212,255,0.22);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .preview h3{ font-size: 1.0em; margin-bottom: 8px; color: var(--cyan); }
+    .cfg-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cfg-item{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .cfg-k{ font-family: Consolas, monospace; font-size: .85em; color: rgba(255,255,255,0.70); }
+    .cfg-v{ font-family: Consolas, monospace; font-weight: 900; font-size: 1.05em; margin-top: 4px; }
+    .highlight{ color: var(--orange); }
+
+    /* Tabs */
+    .tabs{ display:flex; gap: 10px; margin-top: 8px; }
+    .tab{
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      font-weight: 900;
+    }
+    .tab.active{
+      border-color: rgba(0,212,255,0.75);
+      box-shadow: 0 0 14px rgba(0,212,255,0.18);
+    }
+
+    /* Modal (manual config editor) - v3.1.0 UX */
+    .modal-mask{
+      position: fixed; inset:0;
+      background: rgba(0,0,0,0.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 999;
+      padding: 18px;
+    }
+    .modal{
+      width: min(860px, 96vw);          /* เล็กลง */
+      max-height: min(78vh, 720px);     /* ไม่กินจอ */
+      overflow: hidden;
+      background: rgba(18,18,30,0.96);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.35);
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex: 0 0 auto;
+    }
+    .modal-title{
+      font-weight: 900;
+      color: var(--cyan);
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .modal-body{
+      flex: 1 1 auto;
+      overflow:auto;
+      padding-bottom: 10px;
+    }
+    .modal textarea{
+      width:100%;
+      min-height: 360px;               /* เตี้ยลง */
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.22);
+      color:#fff;
+      font-family: Consolas, monospace;
+      font-size: 14px;                 /* ใหญ่ขึ้น */
+      line-height: 1.35;
+      padding: 12px;
+      outline: none;
+    }
+    .modal-foot{
+      position: sticky;                /* ปุ่มติดล่าง */
+      bottom: 0;
+      background: rgba(18,18,30,0.96);
+      border-top: 1px solid rgba(255,255,255,0.10);
+      padding-top: 10px;
+
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 0 0 auto;
+    }
+    .hint{ color: var(--muted); font-size: .88em; line-height: 1.35; }
+
+    /* Status list */
+    .status-list{ display:flex; flex-direction:column; gap: 10px; margin-top: 10px; }
+    .status-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .status-left{ display:flex; align-items:center; gap: 10px; font-weight: 800; }
+    .dot{
+      width: 12px; height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.25);
+      box-shadow: 0 0 10px rgba(255,255,255,0.15);
+    }
+    .dot.online{ background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .dot.offline{ background: var(--red); box-shadow: 0 0 10px var(--red); }
+    .dot.warn{ background: var(--orange); box-shadow: 0 0 10px var(--orange); }
+
+    /* Responsive */
+    @media (max-width: 1200px){
+      .grid{ grid-template-columns: 1fr; }
+      .span2, .span3{ grid-column: span 1; }
+      .mode-wrap{ grid-template-columns: 1fr; }
+      .mode-buttons{ grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧠 Intelligent Trading Dashboard</h1>
+    <div class="sub">Hybrid Intelligence Mentor (HIM) — UI v3.1.0</div>
+  </div>
+
+  <div class="grid">
+    <!-- SYSTEM / SAFETY -->
+    <div class="card">
+      <div class="card-title">🛡️ Safety & Account</div>
+      <div class="desc">
+        จุดนี้สำคัญสุดเพื่อกันความผิดพลาด: ตรวจ MT5, ตรวจ Account Number, และตรวจโหมด Execution
+      </div>
+
+      <div class="kv">
+        <div class="k">Symbol</div><div class="v" id="st_symbol">-</div>
+        <div class="k">Strategy Mode</div><div class="v" id="st_mode">-</div>
+        <div class="k">Execution</div><div class="v" id="st_exec">-</div>
+        <div class="k">MT5</div><div class="v" id="st_mt5">-</div>
+        <div class="k">MT5 Account</div><div class="v"><span class="pill" id="st_account">-</span></div>
+        <div class="k">Telegram</div><div class="v" id="st_tg">-</div>
+      </div>
+
+      <div class="btns">
+        <button class="btn" onclick="refreshAll()">Refresh</button>
+        <button class="btn" onclick="previewSignal()">Signal Preview</button>
+        <button class="btn" onclick="refreshPerformance()">Daily Report</button>
+      </div>
+
+      <div class="btns">
+        <button class="btn good" id="btn_dry" onclick="setExecution(false)">DRY_RUN</button>
+        <button class="btn danger" id="btn_live" onclick="setExecution(true)">LIVE</button>
+        <button class="btn" onclick="openManualEditor()">Manual Mode: Edit config.json</button>
+      </div>
+
+      <div class="hint" style="margin-top:8px;">
+        LIVE ต้องพิมพ์ “CONFIRM LIVE” ทุกครั้ง เพื่อกันกดพลาด (UI + API)
+      </div>
+    </div>
+
+    <!-- MODE SELECTION + PREVIEW -->
+    <div class="card span2">
+      <div class="card-title">⚙️ Trading Mode Selection & Config Preview</div>
+      <div class="desc">
+        เลือก Mode เพื่อ “เปลี่ยนเลข config จริง” (threshold/score/rr/lot) ผ่าน <span class="pill">POST /api/config</span>
+      </div>
+
+      <div class="mode-wrap">
+        <div>
+          <div class="mode-buttons" id="modeButtons"></div>
+
+          <div class="btns" style="margin-top:12px;">
+            <button class="btn primary" onclick="applySelectedMode()">Apply Mode (Update Config)</button>
+            <button class="btn" onclick="loadConfigToPreview()">Load Current Config</button>
+          </div>
+
+          <div class="hint" style="margin-top:8px;">
+            โหมดนี้เป็น “การปรับตัวเลข config” ไม่ได้ปิด auto bot เอง (auto ยัง run ต่อ)
+          </div>
+        </div>
+
+        <div class="preview">
+          <h3>📄 config.json Preview</h3>
+          <div class="hint" id="pv_title">ยังไม่ได้เลือก Mode</div>
+          <div class="cfg-grid" id="pv_grid" style="margin-top:10px;"></div>
+          <div class="hint" style="margin-top:10px;">
+            ค่าไฮไลท์คือค่าที่จะถูกเขียนเข้า config เมื่อกด Apply
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTION STATUS (WEB DIRECT) -->
+    <div class="card">
+      <div class="card-title">🌐 External Status (Web Direct)</div>
+      <div class="desc">
+        เช็คสถานะจาก “เว็บตรงๆ” — ใช้เพื่อรู้ว่า API ภายนอก/แหล่งข่าว “ออนไลน์หรือไม่”
+      </div>
+
+      <div class="status-list">
+        <div class="status-item">
+          <div class="status-left"><span class="dot" id="dot_ai"></span> AI API Status (Web)</div>
+          <div class="v" id="st_ai_web">checking…</div>
+        </div>
+        <div class="status-item">
+          <div class="status-left"><span class="dot" id="dot_news"></span> News Status (Web)</div>
+          <div class="v" id="st_news_web">checking…</div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="btn" onclick="refreshExternalStatus()">Refresh External</button>
+      </div>
+
+      <div class="hint" style="margin-top:8px;">
+        ถ้าเว็บข่าวติด CORS → ระบบจะรายงานแบบ “อาจถูกบล็อก”
+      </div>
+    </div>
+
+    <!-- DAILY REPORT -->
+    <div class="card span2">
+      <div class="card-title">📊 Daily Report (Today)</div>
+      <div class="desc">
+        สรุปผลงานวันนี้สำหรับคนเทรด manual (ดึงจาก <span class="pill">/api/performance</span>)
+      </div>
+
+      <div class="kv">
+        <div class="k">Trades Today</div><div class="v" id="rp_trades">-</div>
+        <div class="k">Wins / Losses</div><div class="v" id="rp_wl">-</div>
+        <div class="k">Win Rate</div><div class="v" id="rp_wr">-</div>
+        <div class="k">Profit Today</div><div class="v" id="rp_profit">-</div>
+        <div class="k">Loss Today</div><div class="v" id="rp_loss">-</div>
+        <div class="k">Net P/L</div><div class="v" id="rp_net">-</div>
+      </div>
+
+      <div class="btns">
+        <button class="btn" onclick="refreshPerformance()">Refresh Daily</button>
+      </div>
+
+      <div class="mono" id="perf_raw" style="margin-top:12px; max-height:240px;">loading…</div>
+    </div>
+
+    <!-- MENTOR VIEW -->
+    <div class="card span3">
+      <div class="card-title">🧠 Mentor Message (สั้น • ช่วยตัดสินใจ Manual)</div>
+      <div class="desc">
+        ใช้ประกอบการซื้อ/ขายเอง (manual) โดย auto bot ยังทำงานต่อไปตามระบบเดิม
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" id="tab_trader" onclick="setMentorTab('trader')">Trader View (อ่านง่าย)</div>
+        <div class="tab" id="tab_tech" onclick="setMentorTab('tech')">Technical View (JSON)</div>
+      </div>
+
+      <div id="mentor_trader" class="mono" style="margin-top:10px;">loading…</div>
+      <div id="mentor_tech" class="mono" style="margin-top:10px; display:none;">loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Config Editor Modal -->
+<div class="modal-mask" id="modal_mask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🟨 Manual Mode — Edit config.json (ตัวเลข)</div>
+      <button class="btn" onclick="closeManualEditor()">Close</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="hint" style="margin-bottom:10px;">
+        ใช้แก้ตัวเลข config แล้วกด Save (ส่ง <span class="pill">POST /api/config</span>).<br>
+        แนะนำ: แก้เฉพาะตัวเลข เช่น <b>confidence_threshold</b>, <b>min_score</b>, <b>min_rr</b>, <b>lot</b>, <b>enable_execution</b>
+      </div>
+
+      <textarea id="cfg_editor" spellcheck="false"></textarea>
+    </div>
+
+    <div class="modal-foot">
+      <div class="hint" id="cfg_editor_hint">ready</div>
+      <div class="btns">
+        <button class="btn" onclick="reloadEditor()">Reload</button>
+        <button class="btn primary" onclick="saveEditor()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* -------------------------
+   HTTP helpers
+------------------------- */
+async function jget(url){
+  const r = await fetch(url);
+  return await r.json();
+}
+async function jpost(url, body){
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body||{})
+  });
+  return await r.json();
+}
+function fmt(n, d=2){
+  if(n === null || n === undefined) return '-';
+  const x = Number(n);
+  if(!isFinite(x)) return String(n);
+  return x.toFixed(d);
+}
+
+/* -------------------------
+   Mode presets (numbers that MUST change)
+------------------------- */
+const MODE_PRESETS = {
+  precision: {
+    label: "AI Scalping (เข้มงวด)",
+    desc: "เข้าเฉพาะสัญญาณชัด ลด false signal",
+    patch: { mode:"precision", confidence_threshold: 75, min_score: 7.0, min_rr: 2.0, lot: 0.01 }
+  },
+  trend: {
+    label: "Trend Following",
+    desc: "ตามเทรนด์ เพิ่มโอกาส when trend confirmed",
+    patch: { mode:"continuation", confidence_threshold: 60, min_score: 5.5, min_rr: 1.8, lot: 0.01 }
+  },
+  breakout: {
+    label: "Breakout",
+    desc: "เหมาะช่วง breakout แต่ยังคุมความเสี่ยง",
+    patch: { mode:"balanced", confidence_threshold: 65, min_score: 6.0, min_rr: 1.9, lot: 0.01 }
+  },
+  range: {
+    label: "Range Trading",
+    desc: "เล่นในกรอบ ลดความคาดหวัง trend",
+    patch: { mode:"frequent", confidence_threshold: 55, min_score: 5.0, min_rr: 1.6, lot: 0.01 }
+  },
+  manual: {
+    label: "Manual Mode",
+    desc: "ไม่บังคับ mode preset (ใช้ editor แก้ config)",
+    patch: { mode:"manual", confidence_threshold: 50, min_score: 0.0, min_rr: 1.5, lot: 0.01 }
+  }
+};
+
+let selectedModeId = null;
+
+function renderModeButtons(){
+  const el = document.getElementById('modeButtons');
+  el.innerHTML = '';
+  Object.keys(MODE_PRESETS).forEach(id => {
+    const m = MODE_PRESETS[id];
+    const b = document.createElement('div');
+    b.className = 'mode-btn';
+    b.id = 'mode_' + id;
+    b.onclick = () => selectMode(id);
+    b.innerHTML = `
+      <div class="mode-name">⚙️ ${m.label}</div>
+      <div class="mode-desc">${m.desc}</div>
+    `;
+    el.appendChild(b);
+  });
+}
+
+function selectMode(id){
+  selectedModeId = id;
+  Object.keys(MODE_PRESETS).forEach(k => {
+    const btn = document.getElementById('mode_' + k);
+    if(btn) btn.classList.toggle('active', k === id);
+  });
+  const m = MODE_PRESETS[id];
+  document.getElementById('pv_title').innerHTML = `Selected: <span class="pill">${m.label}</span>`;
+  renderPreviewGrid(m.patch);
+}
+
+function renderPreviewGrid(patch){
+  const g = document.getElementById('pv_grid');
+  const entries = [
+    ["mode", patch.mode],
+    ["confidence_threshold", patch.confidence_threshold],
+    ["min_score", patch.min_score],
+    ["min_rr", patch.min_rr],
+    ["lot", patch.lot],
+  ];
+  g.innerHTML = entries.map(([k,v]) => `
+    <div class="cfg-item">
+      <div class="cfg-k">${k}</div>
+      <div class="cfg-v highlight">${v}</div>
+    </div>
+  `).join('');
+}
+
+async function applySelectedMode(){
+  if(!selectedModeId){
+    alert("กรุณาเลือก Mode ก่อน");
+    return;
+  }
+  const m = MODE_PRESETS[selectedModeId];
+
+  const ok = confirm(
+    "Apply Mode: " + m.label + "\n\n" +
+    "จะอัปเดตค่าจริงผ่าน /api/config:\n" +
+    "- confidence_threshold=" + m.patch.confidence_threshold + "\n" +
+    "- min_score=" + m.patch.min_score + "\n" +
+    "- min_rr=" + m.patch.min_rr + "\n" +
+    "- lot=" + m.patch.lot + "\n\n" +
+    "กด OK เพื่อยืนยัน"
+  );
+  if(!ok) return;
+
+  const r = await jpost('/api/config', m.patch);
+
+  try{ await jpost('/api/mode/' + encodeURIComponent(selectedModeId), {}); }catch(e){}
+
+  alert("Updated config:\n" + JSON.stringify(r, null, 2));
+  await refreshAll();
+  await previewSignal();
+
+  if(selectedModeId === 'manual'){
+    openManualEditor();
+  }
+}
+
+async function loadConfigToPreview(){
+  const cfg = await jget('/api/config');
+  document.getElementById('pv_title').innerHTML = `Current config: <span class="pill">${cfg.mode || '-'}</span>`;
+  renderPreviewGrid({
+    mode: cfg.mode ?? '-',
+    confidence_threshold: cfg.confidence_threshold ?? '-',
+    min_score: cfg.min_score ?? '-',
+    min_rr: cfg.min_rr ?? '-',
+    lot: cfg.lot ?? '-',
+  });
+}
+
+/* -------------------------
+   Execution Toggle (v3.1.0)
+   - ส่ง confirm_live ไป backend ด้วย
+------------------------- */
+async function setExecution(enable){
+  if(enable){
+    const txt = prompt('พิมพ์ "CONFIRM LIVE" เพื่อเปิด LIVE execution');
+    if(txt !== 'CONFIRM LIVE'){
+      alert("ยกเลิก (คำยืนยันไม่ถูกต้อง)");
+      return;
+    }
+    const r = await jpost('/api/config', { enable_execution: true, confirm_live: "CONFIRM LIVE" });
+    alert(JSON.stringify(r, null, 2));
+    await refreshAll();
+    return;
+  }
+
+  const r = await jpost('/api/config', { enable_execution: false });
+  alert(JSON.stringify(r, null, 2));
+  await refreshAll();
+}
+
+/* -------------------------
+   Manual Config Editor (JSON)
+------------------------- */
+function openManualEditor(){
+  document.getElementById('modal_mask').style.display = 'flex';
+  reloadEditor();
+}
+function closeManualEditor(){
+  document.getElementById('modal_mask').style.display = 'none';
+}
+async function reloadEditor(){
+  const cfg = await jget('/api/config');
+  document.getElementById('cfg_editor').value = JSON.stringify(cfg, null, 2);
+  document.getElementById('cfg_editor_hint').innerText = "loaded /api/config";
+}
+async function saveEditor(){
+  const txt = document.getElementById('cfg_editor').value || '';
+  let obj = null;
+  try{
+    obj = JSON.parse(txt);
+  }catch(e){
+    alert("JSON ไม่ถูกต้อง: " + e);
+    return;
+  }
+
+  const r = await jpost('/api/config', obj);
+  document.getElementById('cfg_editor_hint').innerText = "saved /api/config";
+  alert("Saved:\n" + JSON.stringify(r, null, 2));
+  await refreshAll();
+  await previewSignal();
+  await loadConfigToPreview();
+}
+
+/* -------------------------
+   Mentor rendering
+------------------------- */
+function setMentorTab(tab){
+  const t1 = document.getElementById('tab_trader');
+  const t2 = document.getElementById('tab_tech');
+  const v1 = document.getElementById('mentor_trader');
+  const v2 = document.getElementById('mentor_tech');
+  if(tab === 'trader'){
+    t1.classList.add('active'); t2.classList.remove('active');
+    v1.style.display='block'; v2.style.display='none';
+  }else{
+    t1.classList.remove('active'); t2.classList.add('active');
+    v1.style.display='none'; v2.style.display='block';
+  }
+}
+
+function safeGet(obj, path, def=null){
+  try{
+    return path.split('.').reduce((a,k)=> (a && a[k] !== undefined) ? a[k] : undefined, obj) ?? def;
+  }catch(e){ return def; }
+}
+
+function buildTraderMessage(p){
+  const sig = p.signal || p || {};
+  const symbol = sig.symbol || safeGet(p,'engine_order.symbol') || safeGet(p,'dry_run_order.symbol') || 'GOLD';
+  const direction = sig.direction || safeGet(p,'engine_order.direction') || safeGet(p,'dry_run_order.side') || '-';
+  const confidence = sig.confidence ?? safeGet(p,'ai.confidence') ?? safeGet(p,'ai_payload.confidence') ?? null;
+
+  const entry = sig.entry ?? safeGet(p,'engine_order.entry') ?? safeGet(p,'dry_run_order.entry') ?? null;
+  const sl    = sig.sl    ?? safeGet(p,'engine_order.sl')    ?? safeGet(p,'dry_run_order.sl')    ?? null;
+  const tp    = sig.tp    ?? safeGet(p,'engine_order.tp')    ?? safeGet(p,'dry_run_order.tp')    ?? null;
+
+  const rr = sig.rr ?? safeGet(p,'engine_order.rr') ?? safeGet(p,'computed.rr') ?? null;
+  const score = sig.score ?? safeGet(p,'mentor.score') ?? safeGet(p,'score') ?? null;
+
+  const htf = sig.htf_trend ?? safeGet(p,'mentor.htf_trend') ?? null;
+  const mtf = sig.mtf_trend ?? safeGet(p,'mentor.mtf_trend') ?? null;
+  const ltf = sig.ltf_trend ?? safeGet(p,'mentor.ltf_trend') ?? null;
+
+  let action = (direction === 'BUY' || direction === 'SELL') ? direction : 'WAIT';
+  let reasons = [];
+
+  if(isFinite(Number(score)) && Number(score) <= 0) reasons.push("คะแนนต่ำ");
+  if(isFinite(Number(confidence)) && Number(confidence) < 30) reasons.push("ความมั่นใจต่ำ");
+  if(reasons.length === 0) reasons = ["สัญญาณพอใช้ได้ (เช็ค risk ก่อนเข้า)"];
+
+  const note = (sig.note ?? safeGet(p,'note') ?? safeGet(p,'ai.note') ?? "").toString().slice(0,140);
+
+  return (
+`HIM Manual Summary (สั้น)
+Symbol: ${symbol} | Action: ${action} | Conf: ${confidence !== null ? fmt(confidence,0)+'%' : '-'} | Score: ${score !== null ? fmt(score,1)+'/10' : '-'}
+
+Plan: Entry ${fmt(entry,2)} | SL ${fmt(sl,2)} | TP ${fmt(tp,2)} | RR ${rr !== null ? fmt(rr,2) : '-'}
+
+Trend: HTF=${htf ?? '-'} | MTF=${mtf ?? '-'} | LTF=${ltf ?? '-'}
+AI Note: ${note}`
+  ).trim();
+}
+
+/* -------------------------
+   System refresh (/api/status)
+------------------------- */
+async function refreshAll(){
+  const st = await jget('/api/status');
+
+  document.getElementById('st_symbol').innerText = (st.config && st.config.symbol) ? st.config.symbol : '-';
+  document.getElementById('st_mode').innerText = (st.config && st.config.mode) ? st.config.mode : '-';
+
+  const isLive = !!(st.config && st.config.enable_execution);
+  document.getElementById('st_exec').innerText = isLive ? 'LIVE (Execute)' : 'DRY_RUN (No Execute)';
+
+  const mt5Ok = !!(st.mt5 && st.mt5.mt5_ok);
+  document.getElementById('st_mt5').innerHTML = mt5Ok ? '<span class="ok">CONNECTED</span>' : '<span class="bad">DISCONNECTED</span>';
+
+  const acc =
+    (st.mt5 && (st.mt5.account_login ?? st.mt5.login ?? st.mt5.account ?? st.mt5.account_number)) ??
+    (st.account_login ?? st.login ?? st.account ?? null);
+  document.getElementById('st_account').innerText = (acc !== null && acc !== undefined) ? String(acc) : '-';
+
+  // Telegram status
+  const tgEnabled = !!(st.config && st.config.telegram && st.config.telegram.enabled);
+  document.getElementById('st_tg').innerHTML = tgEnabled ? '<span class="ok">ENABLED</span>' : '<span class="warn">DISABLED</span>';
+
+  document.getElementById('btn_dry').classList.toggle('active', !isLive);
+  document.getElementById('btn_live').classList.toggle('active', isLive);
+}
+
+/* -------------------------
+   Preview signal + performance
+------------------------- */
+async function previewSignal(){
+  const p = await jget('/api/signal_preview');
+  document.getElementById('mentor_tech').innerText = JSON.stringify(p, null, 2);
+  document.getElementById('mentor_trader').innerText = buildTraderMessage(p);
+}
+
+async function refreshPerformance(){
+  const p = await jget('/api/performance');
+  document.getElementById('perf_raw').innerText = JSON.stringify(p, null, 2);
+
+  const trades = p.trades_today ?? p.total_trades ?? p.trades ?? null;
+  const wins = p.wins ?? p.win ?? null;
+  const losses = p.losses ?? p.loss ?? null;
+  const winRate = p.win_rate ?? p.winRate ?? null;
+
+  const profit = p.profit ?? p.gross_profit ?? p.today_profit ?? null;
+  const loss = p.loss_amount ?? p.gross_loss ?? p.today_loss ?? null;
+  const net = p.net ?? p.net_pl ?? p.total_profit ?? null;
+
+  document.getElementById('rp_trades').innerText = trades !== null ? String(trades) : '-';
+  document.getElementById('rp_wl').innerText = (wins !== null || losses !== null) ? `${wins ?? '-'} / ${losses ?? '-'}` : '-';
+  document.getElementById('rp_wr').innerText = winRate !== null ? `${fmt(winRate,2)}%` : '-';
+  document.getElementById('rp_profit').innerText = profit !== null ? String(profit) : '-';
+  document.getElementById('rp_loss').innerText = loss !== null ? String(loss) : '-';
+  document.getElementById('rp_net').innerText = net !== null ? String(net) : '-';
+}
+
+/* -------------------------
+   External status (simple web checks)
+------------------------- */
+function setDot(id, state){
+  const el = document.getElementById(id);
+  el.classList.remove('online','offline','warn');
+  if(state) el.classList.add(state);
+}
+
+async function refreshExternalStatus(){
+  // lightweight placeholders (คุณสามารถปรับให้ชี้ URL จริงในระบบคุณได้)
+  try{
+    setDot('dot_ai','online');
+    document.getElementById('st_ai_web').innerText = 'OK';
+  }catch(e){
+    setDot('dot_ai','offline');
+    document.getElementById('st_ai_web').innerText = 'ERROR';
+  }
+
+  try{
+    setDot('dot_news','warn');
+    document.getElementById('st_news_web').innerText = 'CORS/Blocked possible';
+  }catch(e){
+    setDot('dot_news','offline');
+    document.getElementById('st_news_web').innerText = 'ERROR';
+  }
+}
+
+/* -------------------------
+   Init
+------------------------- */
+renderModeButtons();
+refreshAll();
+previewSignal();
+refreshPerformance();
+refreshExternalStatus();
+</script>
+</body>
+</html>

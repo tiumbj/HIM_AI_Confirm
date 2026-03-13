@@ -1,0 +1,1026 @@
+{
+  "root": "C:/Hybrid_Intelligence_Mentor",
+  "profile": "all",
+  "dry_run": true,
+  "quarantine_dir": "_QUARANTINE_BIN_",
+  "items_count": 91,
+  "actions": [
+    {
+      "path": ".ruff_cache",
+      "kind": "dir",
+      "reasons": [
+        "junk_dir_name"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache"
+    },
+    {
+      "path": "__pycache__",
+      "kind": "dir",
+      "reasons": [
+        "junk_dir_name"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "__pycache__",
+      "dst": "_QUARANTINE_BIN_/__pycache__"
+    },
+    {
+      "path": ".pytest_cache",
+      "kind": "dir",
+      "reasons": [
+        "junk_dir_name"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".pytest_cache",
+      "dst": "_QUARANTINE_BIN_/.pytest_cache"
+    },
+    {
+      "path": ".mypy_cache",
+      "kind": "dir",
+      "reasons": [
+        "junk_dir_name"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".mypy_cache",
+      "dst": "_QUARANTINE_BIN_/.mypy_cache"
+    },
+    {
+      "path": "analysis_out",
+      "kind": "dir",
+      "reasons": [
+        "junk_dir_name"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out",
+      "dst": "_QUARANTINE_BIN_/analysis_out"
+    },
+    {
+      "path": "ai_response_log.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "ai_response_log.json",
+      "dst": "_QUARANTINE_BIN_/ai_response_log.json"
+    },
+    {
+      "path": "bu.txt",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "bu.txt",
+      "dst": "_QUARANTINE_BIN_/bu.txt"
+    },
+    {
+      "path": "candidate_replay_runner_v1_0_5.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "candidate_replay_runner_v1_0_5.py",
+      "dst": "_QUARANTINE_BIN_/candidate_replay_runner_v1_0_5.py"
+    },
+    {
+      "path": "check_env.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "check_env.py",
+      "dst": "_QUARANTINE_BIN_/check_env.py"
+    },
+    {
+      "path": "Code Run Test.txt",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "Code Run Test.txt",
+      "dst": "_QUARANTINE_BIN_/Code Run Test.txt"
+    },
+    {
+      "path": "config.backup.before_candidate_unlock.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config.backup.before_candidate_unlock.json",
+      "dst": "_QUARANTINE_BIN_/config.backup.before_candidate_unlock.json"
+    },
+    {
+      "path": "config.backup.before_modec_test.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config.backup.before_modec_test.json",
+      "dst": "_QUARANTINE_BIN_/config.backup.before_modec_test.json"
+    },
+    {
+      "path": "config.backup.before_sens_tune.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config.backup.before_sens_tune.json",
+      "dst": "_QUARANTINE_BIN_/config.backup.before_sens_tune.json"
+    },
+    {
+      "path": "config.backup.before_st_change.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config.backup.before_st_change.json",
+      "dst": "_QUARANTINE_BIN_/config.backup.before_st_change.json"
+    },
+    {
+      "path": "config.json.backup.20260226_212540",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config.json.backup.20260226_212540",
+      "dst": "_QUARANTINE_BIN_/config.json.backup.20260226_212540"
+    },
+    {
+      "path": "config.py.backup_emoji",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config.py.backup_emoji",
+      "dst": "_QUARANTINE_BIN_/config.py.backup_emoji"
+    },
+    {
+      "path": "config_backup.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "config_backup.json",
+      "dst": "_QUARANTINE_BIN_/config_backup.json"
+    },
+    {
+      "path": "dashboard.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "dashboard.html",
+      "dst": "_QUARANTINE_BIN_/dashboard.html"
+    },
+    {
+      "path": "dashboard.log",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "dashboard.log",
+      "dst": "_QUARANTINE_BIN_/dashboard.log"
+    },
+    {
+      "path": "dashboard_back_up.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "dashboard_back_up.html",
+      "dst": "_QUARANTINE_BIN_/dashboard_back_up.html"
+    },
+    {
+      "path": "DB.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "DB.html",
+      "dst": "_QUARANTINE_BIN_/DB.html"
+    },
+    {
+      "path": "emergency_fix.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "emergency_fix.py",
+      "dst": "_QUARANTINE_BIN_/emergency_fix.py"
+    },
+    {
+      "path": "engine.py.backup",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine.py.backup",
+      "dst": "_QUARANTINE_BIN_/engine.py.backup"
+    },
+    {
+      "path": "engine.py.backup_emoji",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine.py.backup_emoji",
+      "dst": "_QUARANTINE_BIN_/engine.py.backup_emoji"
+    },
+    {
+      "path": "engine.py.backup_v2_0_1_before_v2_0_2",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine.py.backup_v2_0_1_before_v2_0_2",
+      "dst": "_QUARANTINE_BIN_/engine.py.backup_v2_0_1_before_v2_0_2"
+    },
+    {
+      "path": "engine.py.backup_v2_0_4_before_v2_0_5",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine.py.backup_v2_0_4_before_v2_0_5",
+      "dst": "_QUARANTINE_BIN_/engine.py.backup_v2_0_4_before_v2_0_5"
+    },
+    {
+      "path": "engine.py.broken_v2_0_2_backup",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine.py.broken_v2_0_2_backup",
+      "dst": "_QUARANTINE_BIN_/engine.py.broken_v2_0_2_backup"
+    },
+    {
+      "path": "engine.py.final_backup",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine.py.final_backup",
+      "dst": "_QUARANTINE_BIN_/engine.py.final_backup"
+    },
+    {
+      "path": "enginebackup.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "enginebackup.py",
+      "dst": "_QUARANTINE_BIN_/enginebackup.py"
+    },
+    {
+      "path": "engine_backup.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine_backup.py",
+      "dst": "_QUARANTINE_BIN_/engine_backup.py"
+    },
+    {
+      "path": "engine_old2.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "engine_old2.py",
+      "dst": "_QUARANTINE_BIN_/engine_old2.py"
+    },
+    {
+      "path": "example_dashboard.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "example_dashboard.html",
+      "dst": "_QUARANTINE_BIN_/example_dashboard.html"
+    },
+    {
+      "path": "example_dashboard_v2.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "example_dashboard_v2.html",
+      "dst": "_QUARANTINE_BIN_/example_dashboard_v2.html"
+    },
+    {
+      "path": "instructions.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "instructions.html",
+      "dst": "_QUARANTINE_BIN_/instructions.html"
+    },
+    {
+      "path": "instructions.txt",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "instructions.txt",
+      "dst": "_QUARANTINE_BIN_/instructions.txt"
+    },
+    {
+      "path": "mentor_executor.py.backup_emoji",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "mentor_executor.py.backup_emoji",
+      "dst": "_QUARANTINE_BIN_/mentor_executor.py.backup_emoji"
+    },
+    {
+      "path": "news_filter.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "news_filter.py",
+      "dst": "_QUARANTINE_BIN_/news_filter.py"
+    },
+    {
+      "path": "orphan_report.production.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "orphan_report.production.json",
+      "dst": "_QUARANTINE_BIN_/orphan_report.production.json"
+    },
+    {
+      "path": "performance_stats.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "performance_stats.json",
+      "dst": "_QUARANTINE_BIN_/performance_stats.json"
+    },
+    {
+      "path": "proximity_gate.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "proximity_gate.py",
+      "dst": "_QUARANTINE_BIN_/proximity_gate.py"
+    },
+    {
+      "path": "pytest.ini",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "pytest.ini",
+      "dst": "_QUARANTINE_BIN_/pytest.ini"
+    },
+    {
+      "path": "quarantine_report.production.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "quarantine_report.production.json",
+      "dst": "_QUARANTINE_BIN_/quarantine_report.production.json"
+    },
+    {
+      "path": "README_TH.md",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "README_TH.md",
+      "dst": "_QUARANTINE_BIN_/README_TH.md"
+    },
+    {
+      "path": "regime_switch.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "regime_switch.py",
+      "dst": "_QUARANTINE_BIN_/regime_switch.py"
+    },
+    {
+      "path": "Run procedure.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "Run procedure.html",
+      "dst": "_QUARANTINE_BIN_/Run procedure.html"
+    },
+    {
+      "path": "strategy_profiles.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "strategy_profiles.py",
+      "dst": "_QUARANTINE_BIN_/strategy_profiles.py"
+    },
+    {
+      "path": "strategy_router.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "strategy_router.py",
+      "dst": "_QUARANTINE_BIN_/strategy_router.py"
+    },
+    {
+      "path": "test_news.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "test_news.py",
+      "dst": "_QUARANTINE_BIN_/test_news.py"
+    },
+    {
+      "path": "trade_close_state.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "trade_close_state.json",
+      "dst": "_QUARANTINE_BIN_/trade_close_state.json"
+    },
+    {
+      "path": "trade_history.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "trade_history.json",
+      "dst": "_QUARANTINE_BIN_/trade_history.json"
+    },
+    {
+      "path": "trade_log_20260226.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "trade_log_20260226.json",
+      "dst": "_QUARANTINE_BIN_/trade_log_20260226.json"
+    },
+    {
+      "path": ".pytest_cache/CACHEDIR.TAG",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".pytest_cache/CACHEDIR.TAG",
+      "dst": "_QUARANTINE_BIN_/.pytest_cache/CACHEDIR.TAG"
+    },
+    {
+      "path": ".pytest_cache/v/cache/lastfailed",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".pytest_cache/v/cache/lastfailed",
+      "dst": "_QUARANTINE_BIN_/.pytest_cache/v/cache/lastfailed"
+    },
+    {
+      "path": ".pytest_cache/v/cache/nodeids",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".pytest_cache/v/cache/nodeids",
+      "dst": "_QUARANTINE_BIN_/.pytest_cache/v/cache/nodeids"
+    },
+    {
+      "path": ".ruff_cache/CACHEDIR.TAG",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/CACHEDIR.TAG",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/CACHEDIR.TAG"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/13690088738003566994",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/13690088738003566994",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/13690088738003566994"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/1449775547253812774",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/1449775547253812774",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/1449775547253812774"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/15119940856512029899",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/15119940856512029899",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/15119940856512029899"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/18254211992678598312",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/18254211992678598312",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/18254211992678598312"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/2879522960989976463",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/2879522960989976463",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/2879522960989976463"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/4726977352471166306",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/4726977352471166306",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/4726977352471166306"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/5486556942028546268",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/5486556942028546268",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/5486556942028546268"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/8437768699271203273",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/8437768699271203273",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/8437768699271203273"
+    },
+    {
+      "path": ".ruff_cache/0.15.5/9898101568865061606",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".ruff_cache/0.15.5/9898101568865061606",
+      "dst": "_QUARANTINE_BIN_/.ruff_cache/0.15.5/9898101568865061606"
+    },
+    {
+      "path": ".state/bias_state.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/bias_state.json",
+      "dst": "_QUARANTINE_BIN_/.state/bias_state.json"
+    },
+    {
+      "path": ".state/effective_config.executor.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/effective_config.executor.json",
+      "dst": "_QUARANTINE_BIN_/.state/effective_config.executor.json"
+    },
+    {
+      "path": ".state/effective_config.regime.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/effective_config.regime.json",
+      "dst": "_QUARANTINE_BIN_/.state/effective_config.regime.json"
+    },
+    {
+      "path": ".state/engine_pkg_dump.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/engine_pkg_dump.jsonl",
+      "dst": "_QUARANTINE_BIN_/.state/engine_pkg_dump.jsonl"
+    },
+    {
+      "path": ".state/executor_state.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/executor_state.json",
+      "dst": "_QUARANTINE_BIN_/.state/executor_state.json"
+    },
+    {
+      "path": ".state/positions.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/positions.json",
+      "dst": "_QUARANTINE_BIN_/.state/positions.json"
+    },
+    {
+      "path": ".state/positions_state.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/positions_state.json",
+      "dst": "_QUARANTINE_BIN_/.state/positions_state.json"
+    },
+    {
+      "path": ".state/replay_resume_GOLD_M5.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/replay_resume_GOLD_M5.json",
+      "dst": "_QUARANTINE_BIN_/.state/replay_resume_GOLD_M5.json"
+    },
+    {
+      "path": ".state/strategy_router_state.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": ".state/strategy_router_state.json",
+      "dst": "_QUARANTINE_BIN_/.state/strategy_router_state.json"
+    },
+    {
+      "path": "analysis_out/api_checks_legacy.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/api_checks_legacy.py",
+      "dst": "_QUARANTINE_BIN_/analysis_out/api_checks_legacy.py"
+    },
+    {
+      "path": "analysis_out/blocked_by.csv",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/blocked_by.csv",
+      "dst": "_QUARANTINE_BIN_/analysis_out/blocked_by.csv"
+    },
+    {
+      "path": "analysis_out/candidates_stats.csv",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/candidates_stats.csv",
+      "dst": "_QUARANTINE_BIN_/analysis_out/candidates_stats.csv"
+    },
+    {
+      "path": "analysis_out/pytest.ini",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/pytest.ini",
+      "dst": "_QUARANTINE_BIN_/analysis_out/pytest.ini"
+    },
+    {
+      "path": "analysis_out/report.md",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/report.md",
+      "dst": "_QUARANTINE_BIN_/analysis_out/report.md"
+    },
+    {
+      "path": "analysis_out/summary.json",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/summary.json",
+      "dst": "_QUARANTINE_BIN_/analysis_out/summary.json"
+    },
+    {
+      "path": "analysis_out/test_validator_v1_0.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/test_validator_v1_0.py",
+      "dst": "_QUARANTINE_BIN_/analysis_out/test_validator_v1_0.py"
+    },
+    {
+      "path": "analysis_out/validator_v1_0.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "analysis_out/validator_v1_0.py",
+      "dst": "_QUARANTINE_BIN_/analysis_out/validator_v1_0.py"
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-02.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-02.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-02.jsonl"
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-03.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-03.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-03.jsonl"
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-05.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-05.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-05.jsonl"
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-10.jsonl"
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-31.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-31.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-31.jsonl"
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-03-31.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-03-31.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/candidates_GOLD_M5_2025-01-01_to_2025-03-31.jsonl"
+    },
+    {
+      "path": "backtests/trace_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "backtests/trace_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "dst": "_QUARANTINE_BIN_/backtests/trace_GOLD_M5_2025-01-01_to_2025-01-10.jsonl"
+    },
+    {
+      "path": "filters/proximity_gate.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "filters/proximity_gate.py",
+      "dst": "_QUARANTINE_BIN_/filters/proximity_gate.py"
+    },
+    {
+      "path": "filters/__init__.py",
+      "kind": "python",
+      "reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "filters/__init__.py",
+      "dst": "_QUARANTINE_BIN_/filters/__init__.py"
+    },
+    {
+      "path": "templates/dashboard.html",
+      "kind": "asset",
+      "reasons": [
+        "unreferenced_asset"
+      ],
+      "ok": true,
+      "status": "dry_run",
+      "src": "templates/dashboard.html",
+      "dst": "_QUARANTINE_BIN_/templates/dashboard.html"
+    }
+  ],
+  "emergency_backup_zip": "C:/Users/L380/HIM_BACKUPS/_emergency_backup_20260307_133251.zip"
+}

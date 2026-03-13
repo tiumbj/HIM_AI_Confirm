@@ -1,0 +1,133 @@
+PS C:\Hybrid_Intelligence_Mentor> Select-String -Path .\trade_logger.py -Pattern 'path|file|log|config|json\.dump|open\(' -CaseSensitive
+
+trade_logger.py:2:trade_logger.py
+trade_logger.py:4:Changelog:
+trade_logger.py:5:- 1.0.0: Append-only JSON event log with atomic write
+and basic dedupe support.
+trade_logger.py:8:- Keep file as a JSON list
+trade_logger.py:20:    def __init__(self, path: str):
+trade_logger.py:21:        self.path = path
+trade_logger.py:24:        if not os.path.exists(self.path):
+trade_logger.py:27:            with open(self.path, "r",
+encoding="utf-8") as f:
+trade_logger.py:34:        tmp = self.path + ".tmp"
+trade_logger.py:35:        with open(tmp, "w", encoding="utf-8") as f:
+trade_logger.py:36:            json.dump(data, f, ensure_ascii=False,
+indent=2)
+trade_logger.py:37:        os.replace(tmp, self.path)
+
+
+PS C:\Hybrid_Intelligence_Mentor> Select-String -Path .\trade_close_monitor.py -Pattern 'state_path|path|config|json\.dump|open\(' -CaseSensitive
+
+trade_close_monitor.py:36:def _load_json(path: str) -> Dict[str, Any]:
+trade_close_monitor.py:37:    if not os.path.exists(path):
+trade_close_monitor.py:40:        with open(path, "r",
+encoding="utf-8") as f:
+trade_close_monitor.py:46:def _atomic_write_json(path: str, data:
+Dict[str, Any]) -> None:
+trade_close_monitor.py:47:    tmp = f"{path}.tmp"
+trade_close_monitor.py:48:    with open(tmp, "w", encoding="utf-8") as
+f:
+trade_close_monitor.py:49:        json.dump(data, f,
+ensure_ascii=False, indent=2)
+trade_close_monitor.py:50:    os.replace(tmp, path)
+trade_close_monitor.py:98:def _load_trade_history_events(path: str) ->
+List[Dict[str, Any]]:
+trade_close_monitor.py:99:    if not os.path.exists(path):
+trade_close_monitor.py:102:        with open(path, "r",
+encoding="utf-8") as f:
+trade_close_monitor.py:171:        base_dir =
+os.path.dirname(os.path.abspath(__file__))
+trade_close_monitor.py:172:        self.state_path =
+os.path.join(base_dir, "trade_close_state.json")
+trade_close_monitor.py:173:        self.history_path =
+os.path.join(base_dir, "trade_history.json")
+trade_close_monitor.py:174:        self.tlog =
+TradeLogger(self.history_path)
+trade_close_monitor.py:178:        s = _load_json(self.state_path)
+trade_close_monitor.py:185:        _atomic_write_json(self.state_path,
+state)
+trade_close_monitor.py:201:        trade_events =
+_load_trade_history_events(self.history_path)
+
+
+PS C:\Hybrid_Intelligence_Mentor> python mentor_executor.py
+{
+  "symbol": "GOLD",
+  "direction": "NONE",
+  "entry_candidate": null,
+  "stop_candidate": null,
+  "tp_candidate": null,
+  "rr": 0.0,
+  "score": 0.0,
+  "confidence_py": 0,
+  "bos": false,
+  "supertrend_ok": true,
+  "context": {
+    "engine_version": "2.9.0",
+    "mode": "continuation",
+    "HTF_trend": "ranging",
+    "MTF_trend": "bearish",
+    "LTF_trend": "bearish",
+    "bias_source": "MTF_FALLBACK",
+    "direction_bias": "SELL",
+    "bos_ref_high": 5187.73,
+    "bos_ref_low": 5157.64,
+    "bos_ref": 5157.64,
+    "distance_buy": 24.349999999999454,
+    "distance_sell": 5.739999999999782,
+    "atr": 11.04421302920488,
+    "atr_period": 14,
+    "atr_sl_mult": 1.8,
+    "min_rr": 2.0,
+    "breakout_confirm_buffer_atr": 0.05,
+    "breakout_confirm_buffer_points": 0.552210651460244,
+    "breakout_proximity_min_score": 10.0,
+    "breakout_proximity_threshold_atr": 1.5,
+    "continuation_enabled": true,
+    "continuation_require_mtf_ltf_align": true,
+    "continuation_require_htf_not_opposite": true,
+    "continuation_proximity_threshold_atr": 1.8,
+    "continuation_proximity_min_score": 20.0,
+    "breakout_state": "NONE",
+    "breakout_side": null,
+    "breakout_overshoot_points": null,
+    "retest_required": true,
+    "retest_band_atr": 0.3,
+    "retest_band": 3.313263908761464,
+    "retest_ok": false,
+    "supertrend_period": 10,
+    "supertrend_mult": 3.0,
+    "supertrend_dir": "bearish",
+    "supertrend_value": 5189.81880472037,
+    "supertrend_ok": true,
+    "proximity_score": 71.1261555671174,
+    "proximity_side": "SELL",
+    "proximity_best_dist": 5.739999999999782,
+    "proximity_threshold_points": 19.879583452568784,
+    "watch_state": "WATCH_PROXIMITY",
+    "blocked_by": "rr_too_low",
+    "timeframes": {
+      "htf": "H4",
+      "mtf": "H1",
+      "ltf": "M15"
+    },
+    "structure_sensitivity": {
+      "htf": 5,
+      "mtf": 4,
+      "ltf": 3
+    }
+  }
+}
+
+=== DECISION ===
+{
+  "ts": "2026-02-26T14:34:57+00:00",
+  "approved": false,
+  "reason": "direction_none",
+  "mode": "continuation",
+  "symbol": "GOLD",
+  "side": "NONE"
+}
+PS C:\Hybrid_Intelligence_Mentor>
+

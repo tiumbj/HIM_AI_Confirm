@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Gold Prices Rise on US Dollar Weakness",
+    "description": "Gold prices climbed as the US dollar softened against major currencies, making bullion cheaper for foreign buyers.",
+    "published": "2026-02-24T19:29:50.341223",
+    "source": "Reuters (Mock)",
+    "sentiment": 0.75,
+    "impact": "medium"
+  },
+  {
+    "title": "Federal Reserve Signals Potential Rate Cut",
+    "description": "Fed officials hint at possible rate cuts later this year, boosting non-yielding assets like gold.",
+    "published": "2026-02-24T17:29:50.341248",
+    "source": "Bloomberg (Mock)",
+    "sentiment": 0.82,
+    "impact": "high"
+  },
+  {
+    "title": "Central Banks Continue Gold Purchases",
+    "description": "Global central banks added to their gold reserves in the latest quarter, supporting prices.",
+    "published": "2026-02-24T14:29:50.341274",
+    "source": "Financial Times (Mock)",
+    "sentiment": 0.68,
+    "impact": "medium"
+  },
+  {
+    "title": "Technical Analysis: Gold Breaks Resistance",
+    "description": "Gold prices broke above key resistance level, suggesting further upside potential.",
+    "published": "2026-02-24T11:29:50.341286",
+    "source": "DailyFX (Mock)",
+    "sentiment": 0.71,
+    "impact": "low"
+  },
+  {
+    "title": "Geopolitical Tensions Boost Safe-Haven Demand",
+    "description": "Rising tensions in Middle East drive investors toward safe-haven assets including gold.",
+    "published": "2026-02-24T07:29:50.341295",
+    "source": "CNBC (Mock)",
+    "sentiment": 0.64,
+    "impact": "high"
+  }
+]

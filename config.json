@@ -1,0 +1,133 @@
+{
+  "_meta": {
+    "code_name": "HIM Production Config",
+    "file_path": "c:\\Data\\Bot\\HIM_AI_Confirm\\config.json",
+    "run_cmd": "python watchdog_supervisor.py",
+    "config_version": "2.13.0",
+    "last_updated": "2026-03-13",
+    "changelog": [
+      "PHASE 8: remove dead/misleading config keys from production path and keep only keys actually read by production runtime."
+    ],
+    "source_of_truth": {
+      "strategy": "engine.py reads top-level strategy keys (symbol/timeframes/min_rr/BOS/vol/ST/trend_entry).",
+      "execution": "mt5_executor.py reads execution.*; telegram_notifier.py reads telegram.*.",
+      "ai_confirm": "api_server.py reads ai_confirm.* for confirm rules / LLM settings.",
+      "risk_guard": "risk_guard_hardstop.py reads risk_guard.* and enforces MT5-based limits.",
+      "supervisor": "watchdog_supervisor.py reads api.* and dashboard.* (and commissioning.dry_run).",
+      "analytics": "trade_analytics.py reads analytics.analysis_interval/trade_history_days/min_trades_for_analysis/enabled."
+    },
+    "removed_keys": [
+      "mode",
+      "structure_sensitivity",
+      "atr",
+      "risk",
+      "supertrend",
+      "breakout",
+      "continuation",
+      "sideway_scalp",
+      "profiles",
+      "ai",
+      "proximity_score_min",
+      "confidence_threshold",
+      "min_score",
+      "lot",
+      "enable_execution",
+      "commissioning.poll_sec",
+      "commissioning.events_log_path",
+      "commissioning.state_path",
+      "analytics.interval_sec",
+      "analytics.output_path"
+    ]
+  },
+  "api": {
+    "host": "127.0.0.1",
+    "port": 5000
+  },
+  "dashboard": {
+    "host": "127.0.0.1",
+    "port": 8502,
+    "external_url": ""
+  },
+  "symbol": "GOLD",
+  "timeframes": {
+    "htf": "H1",
+    "mtf": "M15",
+    "ltf": "M5"
+  },
+  "min_rr": 1.3,
+  "decision_timeframes": [
+    "M10",
+    "M15",
+    "M30",
+    "H1"
+  ],
+  "decision_min_agree": 2,
+  "bos_break_atr_min": 0.12,
+  "bos_lookback": 12,
+  "st_relax_dist_atr_m1": 0.6,
+  "bb_width_atr_min": 0.8,
+  "bb_width_atr_min_m1": 0.55,
+  "rr_sl_atr": 1.25,
+  "rr_base_tp_atr": 1.9,
+  "trend_entry": {
+    "enabled": true,
+    "min_align": 1,
+    "max_supertrend_distance_atr": 2.6
+  },
+  "commissioning": {
+    "enabled": true,
+    "dry_run": 0,
+    "event_timeframes": [
+      "M1"
+    ]
+  },
+  "execution": {
+    "magic": 202603,
+    "lot": 0.01,
+    "max_spread_points": 80,
+    "deviation_min": 20,
+    "deviation_spread_mult": 2.0,
+    "cooldown_seconds": 20,
+    "atr_period": 14,
+    "atr_multiplier": 0.2,
+    "timeframe": "M5",
+    "sltp_verify_timeout_sec": 3.0,
+    "sltp_verify_retry_interval_sec": 0.25
+  },
+  "telegram": {
+    "enabled": true,
+    "notify_on": [
+      "signal",
+      "trade",
+      "error"
+    ],
+    "token_env": "TELEGRAM_BOT_TOKEN_TRADE",
+    "chat_id_env": "TELEGRAM_TRADE_CHAT_ID"
+  },
+  "ai_confirm": {
+    "use_llm": true,
+    "provider": "deepseek",
+    "llm_api_url": "https://api.deepseek.com/v1/chat/completions",
+    "llm_model": "deepseek-reasoner",
+    "llm_timeout_sec": 8.0,
+    "llm_max_tokens": 220,
+    "llm_temperature": 0.1,
+    "external_url": "",
+    "timeout_sec": 8.0,
+    "min_confidence": null,
+    "min_rr": 1.3
+  },
+  "risk_guard": {
+    "enabled": true,
+    "initial_equity": 10000.0,
+    "max_daily_dd_pct": 2.0,
+    "max_total_dd_pct": 8.0,
+    "poll_interval_sec": 5
+  },
+  "analytics": {
+    "enabled": true,
+    "analysis_interval": 60.0,
+    "trade_history_days": 7,
+    "min_trades_for_analysis": 10
+  }
+}

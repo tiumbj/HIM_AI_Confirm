@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>HIM Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 16px; }
+    .row { display:flex; gap:16px; flex-wrap:wrap; }
+    .card { border:1px solid #ddd; padding:12px; border-radius:8px; min-width: 320px; }
+    label { display:block; margin-top:8px; }
+    input, select { width: 100%; padding: 6px; margin-top:4px; }
+    button { padding: 8px 12px; margin-top: 10px; cursor:pointer; }
+    pre { background:#f7f7f7; padding:10px; border-radius:8px; overflow:auto; max-height: 360px; }
+    .ok { color: #0a7; }
+    .bad { color: #b00; }
+  </style>
+</head>
+<body>
+  <h2>Hybrid Intelligence Mentor (HIM) — Dashboard (Final Spec)</h2>
+
+  <div class="row">
+    <div class="card">
+      <h3>Mode (A/B/C)</h3>
+      <button onclick="applyMode('A')">Mode A (High precision)</button>
+      <button onclick="applyMode('B')">Mode B (Balanced)</button>
+      <button onclick="applyMode('C')">Mode C (Frequent)</button>
+      <div id="mode_result"></div>
+    </div>
+
+    <div class="card">
+      <h3>Runtime Controls</h3>
+
+      <label>Symbol</label>
+      <input id="symbol" placeholder="GOLD"/>
+
+      <label>Enable Execution (จริง/จำลอง)</label>
+      <select id="enable_execution">
+        <option value="false">false (Dry-run)</option>
+        <option value="true">true (Execute)</option>
+      </select>
+
+      <label>Confidence Threshold (0..100)</label>
+      <input id="confidence_threshold" type="number" min="0" max="100" step="1"/>
+
+      <label>Minimum Score (0..10)</label>
+      <input id="min_score" type="number" min="0" max="10" step="0.1"/>
+
+      <label>Minimum RR</label>
+      <input id="min_rr" type="number" min="0.1" max="20" step="0.1"/>
+
+      <label>Lot</label>
+      <input id="lot" type="number" min="0.01" max="100" step="0.01"/>
+
+      <h4>SuperTrend</h4>
+      <label>Period</label>
+      <input id="st_period" type="number" min="2" max="200" step="1"/>
+      <label>Multiplier</label>
+      <input id="st_mult" type="number" min="0.1" max="20" step="0.1"/>
+
+      <h4>Structure Sensitivity</h4>
+      <label>HTF</label>
+      <input id="sens_htf" type="number" min="1" max="20" step="1"/>
+      <label>MTF</label>
+      <input id="sens_mtf" type="number" min="1" max="20" step="1"/>
+      <label>LTF</label>
+      <input id="sens_ltf" type="number" min="1" max="20" step="1"/>
+
+      <h4>Timeframes</h4>
+      <label>HTF</label>
+      <select id="tf_htf">
+        <option>D1</option><option selected>H4</option><option>H1</option><option>M30</option><option>M15</option>
+      </select>
+      <label>MTF</label>
+      <select id="tf_mtf">
+        <option>H4</option><option selected>H1</option><option>M30</option><option>M15</option>
+      </select>
+      <label>LTF</label>
+      <select id="tf_ltf">
+        <option>H1</option><option>M30</option><option selected>M15</option><option>M5</option><option>M1</option>
+      </select>
+
+      <h4>Risk</h4>
+      <label>ATR Period</label>
+      <input id="atr_period" type="number" min="2" max="200" step="1"/>
+      <label>ATR SL Mult</label>
+      <input id="atr_sl_mult" type="number" min="0.1" max="20" step="0.1"/>
+
+      <button onclick="saveConfig()">Save Config (Hot)</button>
+      <div id="save_result"></div>
+    </div>
+
+    <div class="card">
+      <h3>Status</h3>
+      <button onclick="refreshStatus()">Refresh</button>
+      <pre id="status"></pre>
+    </div>
+
+    <div class="card">
+      <h3>Signal Preview (Dry-run)</h3>
+      <button onclick="previewSignal()">Preview Signal</button>
+      <pre id="signal"></pre>
+    </div>
+  </div>
+
+<script>
+async function getConfig(){
+  const r = await fetch('/api/config');
+  return await r.json();
+}
+
+function setText(id, txt, ok=true){
+  const el = document.getElementById(id);
+  el.innerHTML = ok ? `<div class="ok">${txt}</div>` : `<div class="bad">${txt}</div>`;
+}
+
+async function loadForm(){
+  const cfg = await getConfig();
+  document.getElementById('symbol').value = cfg.symbol ?? "GOLD";
+  document.getElementById('enable_execution').value = String(!!cfg.enable_execution);
+  document.getElementById('confidence_threshold').value = cfg.confidence_threshold ?? 75;
+  document.getElementById('min_score').value = cfg.min_score ?? 7.0;
+  document.getElementById('min_rr').value = cfg.min_rr ?? 2.0;
+  document.getElementById('lot').value = cfg.lot ?? 0.01;
+
+  document.getElementById('st_period').value = cfg.supertrend?.period ?? 10;
+  document.getElementById('st_mult').value = cfg.supertrend?.multiplier ?? 3.0;
+
+  document.getElementById('sens_htf').value = cfg.structure_sensitivity?.htf ?? 5;
+  document.getElementById('sens_mtf').value = cfg.structure_sensitivity?.mtf ?? 4;
+  document.getElementById('sens_ltf').value = cfg.structure_sensitivity?.ltf ?? 3;
+
+  document.getElementById('tf_htf').value = cfg.timeframes?.htf ?? "H4";
+  document.getElementById('tf_mtf').value = cfg.timeframes?.mtf ?? "H1";
+  document.getElementById('tf_ltf').value = cfg.timeframes?.ltf ?? "M15";
+
+  document.getElementById('atr_period').value = cfg.risk?.atr_period ?? 14;
+  document.getElementById('atr_sl_mult').value = cfg.risk?.atr_sl_mult ?? 1.8;
+}
+
+async function saveConfig(){
+  const patch = {
+    symbol: document.getElementById('symbol').value,
+    enable_execution: document.getElementById('enable_execution').value === "true",
+    confidence_threshold: Number(document.getElementById('confidence_threshold').value),
+    min_score: Number(document.getElementById('min_score').value),
+    min_rr: Number(document.getElementById('min_rr').value),
+    lot: Number(document.getElementById('lot').value),
+    supertrend: {
+      period: Number(document.getElementById('st_period').value),
+      multiplier: Number(document.getElementById('st_mult').value)
+    },
+    structure_sensitivity: {
+      htf: Number(document.getElementById('sens_htf').value),
+      mtf: Number(document.getElementById('sens_mtf').value),
+      ltf: Number(document.getElementById('sens_ltf').value)
+    },
+    timeframes: {
+      htf: document.getElementById('tf_htf').value,
+      mtf: document.getElementById('tf_mtf').value,
+      ltf: document.getElementById('tf_ltf').value
+    },
+    risk: {
+      atr_period: Number(document.getElementById('atr_period').value),
+      atr_sl_mult: Number(document.getElementById('atr_sl_mult').value)
+    }
+  };
+
+  const r = await fetch('/api/config', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(patch)
+  });
+
+  if(r.ok){
+    setText('save_result', 'Saved. engine/executor will hot-reload config.json');
+  } else {
+    const j = await r.json().catch(()=>({error:'unknown'}));
+    setText('save_result', 'Save failed: ' + (j.error || 'unknown'), false);
+  }
+}
+
+async function applyMode(m){
+  const r = await fetch('/api/mode/' + m, {method:'POST'});
+  if(r.ok){
+    setText('mode_result', 'Applied Mode ' + m + ' (saved to config.json)');
+    await loadForm();
+  } else {
+    const j = await r.json().catch(()=>({error:'unknown'}));
+    setText('mode_result', 'Apply mode failed: ' + (j.error || 'unknown'), false);
+  }
+}
+
+async function refreshStatus(){
+  const r = await fetch('/api/status');
+  const j = await r.json();
+  document.getElementById('status').textContent = JSON.stringify(j, null, 2);
+}
+
+async function previewSignal(){
+  const r = await fetch('/api/signal_preview');
+  const j = await r.json();
+  document.getElementById('signal').textContent = JSON.stringify(j, null, 2);
+}
+
+loadForm();
+refreshStatus();
+</script>
+</body>
+</html>

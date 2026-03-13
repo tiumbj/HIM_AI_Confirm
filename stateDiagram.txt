@@ -1,0 +1,263 @@
+State Diagram (Consolidated)
+Project: Hybrid Intelligence Mentor (HIM) — MT5 GOLD (XAUUSD)
+Updated: 2026-03-10
+
+Purpose
+- รวม stateDiagram-v2..v29 ให้เหลือไฟล์เดียวสำหรับ handoff/รันงานจริง
+- เป็น “state diagram แบบ wording” เป็นหลัก (มี Mermaid เสริมท้ายไฟล์)
+
+Legend
+- ✅ Done: ใช้งานได้ตามหน้าที่หลัก
+- 🟡 In Progress: ทำงานได้บางส่วน/ยังต้องต่อ/ยังต้องมี evidence
+- ⏳ Pending: ยังไม่เริ่มหรือยังไม่เชื่อมเข้าระบบหลัก
+- 🔴 Issues: มีปัญหาที่ทำให้ระบบไม่เสถียรหรือผิดเงื่อนไข production
+
+================================================================================
+0) High-Level State Flow (Text)
+================================================================================
+
+Project_Boot
+  -> Config_SSOT
+  -> Engine_Core (signal + plan + metrics + blocked_by)
+  -> API_Server (signal_preview + ai_confirm)
+  -> Mentor_Executor (orchestrator)
+  -> AI_Final_Confirm (confirm-only)
+  -> MT5_Executor_Hardening (fail-closed)
+  -> MT5_OrderSend
+  -> Logs/Stats/Notify
+
+Core invariants (ห้ามเปลี่ยนหลักการ)
+- Confirm-only: AI อนุญาต/ปฏิเสธเท่านั้น และต้องไม่แก้ plan (entry/sl/tp)
+- Fail-closed: ข้อมูลขาด/ผิดรูปแบบ/เชื่อมต่อไม่ได้ => SKIP ไม่เทรด
+- Telegram separation:
+  - Trade room: TELEGRAM_TRADE_CHAT_ID (trade/execution alerts)
+  - Mentor room: TELEGRAM_MENTOR_CHAT_ID (read-only/teaching/diagnostics)
+  - Guard: ถ้า mentor_chat_id == trade_chat_id จะ block การส่งเพื่อกันปนห้อง
+
+Change log (2026-03-09) — Tune/แก้ไขสำคัญที่ทำให้ runtime เปลี่ยน
+- API normalize: /api/signal_preview ส่ง field เพิ่ม (price/engine_version/gates/event_timeframe ฯลฯ) และเติม metrics.atr จาก price.atr
+- AI confirm prompt: ลด false-deny จาก “ATR missing / ST distance” โดยบังคับ deny เฉพาะ conflict/rr/blocked_by
+- Telegram routing (trade): config.json เปลี่ยน telegram.token_env/chat_id_env -> TELEGRAM_BOT_TOKEN_TRADE/TELEGRAM_TRADE_CHAT_ID
+- Mentor telegram guard: mentor_executor.py กัน mentor/trade chat_id ซ้ำ
+- Mentor noise: ปิดการส่ง “HIM MENTOR | EXECUTION” เข้า mentor room (ส่งเฉพาะ startup/intel)
+- Execution adaptive pyramiding: mt5_executor.py รองรับเพิ่มไม้แบบ adaptive (ไม่ fix จำนวนไม้) โดยคุมด้วย ATR step/Regime/Alignment/ST distance/Margin
+
+Change log (2026-03-10) — Tune แบบค่อยเป็นค่อยไปเพื่อเพิ่ม winrate (ลดความถี่เล็กน้อย)
+- Engine gate tightening (config.json):
+  - bos_break_atr_min: 0.05 -> 0.12
+  - bb_width_atr_min: 0.70 -> 0.80
+  - bb_width_atr_min_m1: 0.45 -> 0.55
+  - st_relax_dist_atr_m1: 1.20 -> 0.60
+- Execution anti-chase (mt5_executor.py):
+  - ใช้ supertrend_distance_atr เป็น hard gate “ทุกไม้” (ไม่ใช่เฉพาะเพิ่มไม้)
+  - ปรับ default: EXECUTION_PYRAMID_STEP_ATR=0.8, EXECUTION_PYRAMID_MAX_ST_DISTANCE_ATR=3.2
+- AI LLM model (config.json):
+  - ai_confirm.llm_model: deepseek-chat -> deepseek-reasoner
+
+Change log (2026-03-10) — Multi-TF decision + adaptive reverse + noise reduction
+- API decision aggregation:
+  - /api/signal_preview default mode ใช้ multi-timeframe vote จาก M10/M15/M30/H1
+  - ต้องผ่าน decision_min_agree (config default 2) ถึงจะได้ BUY/SELL
+  - กรณีไม่ consensus => HOLD + blocked_by=[multi_tf_no_consensus]
+  - รองรับ override เฉพาะ TF ด้วย query: /api/signal_preview?event_timeframe=<TF>
+- Mentor payload:
+  - ส่ง decision_votes ต่อไปยัง AI confirm และ execution package
+- Mentor intel noise reduction:
+  - ส่ง mentor intel เฉพาะตอน trend เปลี่ยน (default TF: M15,M30,H1,H4)
+  - ลด spam ช่วง HOLD/sideway
+- MT5 adaptive reverse:
+  - เมื่อมีสัญญาณตรงข้ามที่ “ยืนยันจริง” ระบบปิดไม้ฝั่งเดิมก่อน แล้วค่อยพิจารณาเข้าไม้ใหม่
+  - reverse confirm ใช้ alignment + supertrend direction + regime + decision_votes + st distance
+  - ถ้าไม่ผ่าน confirm จะ SKIP ด้วย opposite_signal_not_confirmed
+
+================================================================================
+A) Current Runtime Inventory (as of 2026-03-07)
+================================================================================
+
+Core runtime (ต้องมีเพื่อรันระบบหลัก)
+- config.json — ✅ (SSOT knobs)
+- engine.py — ✅ (Production model; สร้าง signal package)
+- api_server.py — ✅ (Flask API server; endpoints สำคัญ + normalize ครบ)
+- mentor_executor.py — ✅ (Orchestrator; startup status + mentor intelligent summary + telegram guard)
+- mt5_executor.py — ✅ (Execution hardening + adaptive pyramiding policy)
+- telegram_notifier.py — ✅ (notification path; ใช้ config.json กำหนด env key)
+
+Optional (มี/ไม่มีได้ แต่แนะนำให้เก็บ)
+- tools/ — 🟡 (offline analytics/utilities; ไม่กระทบ autotrade)
+- tests/ — 🟡 (regression tests; ถ้าลบจะเหลือการตรวจแบบ runtime smoke)
+- logs/ — runtime artifacts (ควร gitignore)
+
+================================================================================
+B) API Server (api_server.py)
+================================================================================
+
+Endpoints (ต้องทำงาน)
+- GET  /api/health
+- GET  /api/status
+- GET  /api/signal_preview
+- POST /api/ai_confirm
+
+API signal decision modes
+- Default: multi-TF vote mode (M10/M15/M30/H1) + threshold decision_min_agree
+- Override mode: ?event_timeframe=M15 (หรือ TF ที่รองรับ) เพื่อ debug/monitor ราย TF
+- Enriched output includes:
+  - multi_tf (per TF snapshot)
+  - decision_votes (BUY/SELL/min_agree)
+
+Startup notify (optional)
+- ส่ง Telegram ตอน start (ไป TELEGRAM_CHAT_ID) เมื่อ:
+  - API_STARTUP_NOTIFY=1 และมี TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID
+
+================================================================================
+C) Mentor Executor (mentor_executor.py)
+================================================================================
+
+Responsibilities
+- Poll signal: SIGNAL_URL (default /api/signal_preview)
+- Call AI confirm: AI_CONFIRM_URL (default /api/ai_confirm)
+- Enforce confirm-only merge (AI ห้ามแก้ plan)
+- Execute via mt5_executor (เป็น final authority)
+- Logs: logs/mentor_executor.jsonl
+
+Telegram behavior (as of 2026-03-09)
+- Mentor room: ส่งเฉพาะ startup status + intelligent/teaching (ไม่ส่ง execution dump)
+- Guard: ถ้า mentor_chat_id == trade_chat_id จะไม่ส่งเพื่อกันปนห้อง
+
+Startup connection status
+- พิมพ์และ log event=startup_status (health/status/signal_preview + telegram env status)
+- ส่ง Telegram ตอน start:
+  - Mentor room: MENTOR_STARTUP_NOTIFY=1 (default) และเปิด mentor telegram
+  - Autotrade room: AUTOTRADE_STARTUP_NOTIFY=1 (default=0)
+
+Mentor “Intelligent” summary (lightweight)
+- เมื่อ decision_not_trade (HOLD) จะส่งสรุปเป็นช่วง ๆ (ไม่ spam)
+  - MENTOR_INTEL_ENABLED=1 (default)
+  - MENTOR_INTEL_INTERVAL_SEC=1800 (default 30 นาที)
+
+Mentor trend-change mode (noise reduction)
+- ถ้าเปิด trend-change mode จะส่งข้อความเฉพาะเมื่อ trend เปลี่ยนใน TF ที่กำหนด
+- Defaults:
+  - MENTOR_INTEL_TREND_CHANGE_ONLY=1
+  - MENTOR_INTEL_TFS=M15,M30,H1,H4
+
+Env knobs (สำคัญ)
+- SIGNAL_URL, AI_CONFIRM_URL, POLL_INTERVAL, DRY_RUN, SYMBOL
+- MENTOR_TELEGRAM_ENABLED (ถ้าว่างจะ enable อัตโนมัติเมื่อมี TELEGRAM_MENTOR_CHAT_ID)
+- MENTOR_STARTUP_NOTIFY, AUTOTRADE_STARTUP_NOTIFY
+- TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_MENTOR_CHAT_ID
+
+================================================================================
+D) MT5 Executor Hardening (mt5_executor.py)
+================================================================================
+
+Fail-closed guards (สำคัญ)
+- request_id required + dedup persistent state
+- ai_confirm.approved ต้อง true (ไม่งั้น SKIP)
+- decision ต้อง BUY/SELL เท่านั้น
+- plan ต้องมี entry/sl/tp และเป็น number/side ถูกต้อง
+- spread/cooldown/margin checks
+- logging ทุกเหตุการณ์ลง logs/execution_orders.jsonl
+
+Adaptive pyramiding policy (as of 2026-03-10)
+- เป้าหมาย: ไม่ fix จำนวนไม้ แต่ “เพิ่มไม้เฉพาะตอนเทรนด์ไปทางถูก” (pyramiding)
+- เงื่อนไขหลัก:
+  - Regime ต้องอยู่ในชุดที่อนุญาต (default: TREND,EXPANSION)
+  - Alignment_score >= threshold (default: 2)
+  - ST direction ต้องไปทางเดียวกับ order (BUY:+1 / SELL:-1)
+  - กันไล่ราคา: supertrend_distance_atr <= max (default: 3.2) — ใช้ทั้ง “ไม้แรก” และ “เพิ่มไม้”
+  - เพิ่มไม้เมื่อราคาไปทางถูกจากไม้ล่าสุด >= step_atr * ATR (default: 0.8*ATR)
+  - จำกัดด้วย margin_free แบบ dynamic + buffer และมี abs max positions กัน runaway
+- Env knobs:
+  - EXECUTION_PYRAMID_ENABLE (default 1)
+  - EXECUTION_PYRAMID_STEP_ATR (default 0.8)
+  - EXECUTION_PYRAMID_MIN_ALIGN (default 2)
+  - EXECUTION_PYRAMID_ALLOW_REGIMES (default TREND,EXPANSION)
+  - EXECUTION_PYRAMID_MAX_ST_DISTANCE_ATR (default 3.2)
+  - EXECUTION_PYRAMID_MARGIN_BUFFER (default 1.6)
+  - EXECUTION_ABS_MAX_POSITIONS (default 50)
+
+Adaptive reverse policy (as of 2026-03-10)
+- เป้าหมาย: หยุดการค้างสองฝั่ง (BUY+SELL) และ reverse แบบมีเงื่อนไข
+- Flow:
+  - ถ้าเจอ opposite positions:
+    - ถ้า reverse disabled => block ด้วย opposite_buy_open/opposite_sell_open
+    - ถ้า reverse enabled และ signal confirmed => close opposite ก่อน
+    - หลังปิดแล้ว ยังต้องผ่าน anti-chase/position guards ก่อนส่ง order ใหม่
+- Reverse confirm gates:
+  - alignment >= 2
+  - supertrend direction ไปทางเดียวกับ signal
+  - regime in EXECUTION_PYRAMID_ALLOW_REGIMES
+  - decision_votes (ถ้ามี) ต้องผ่าน EXECUTION_REVERSE_MIN_VOTES และไม่มี vote สวน
+  - supertrend_distance_atr <= EXECUTION_REVERSE_MAX_ST_DISTANCE_ATR
+- Env knobs:
+  - EXECUTION_ADAPTIVE_REVERSE (default 1)
+  - EXECUTION_REVERSE_MIN_VOTES (runtime tuned to 3)
+  - EXECUTION_REVERSE_MAX_ST_DISTANCE_ATR (runtime tuned to 2.8)
+
+================================================================================
+E) Operator Runbook (Safe)
+================================================================================
+
+1) Start API server
+- python api_server.py
+
+2) Verify endpoints
+- GET http://127.0.0.1:5000/api/health
+- GET http://127.0.0.1:5000/api/status
+- GET http://127.0.0.1:5000/api/signal_preview
+
+3) Start mentor (safe commissioning / DRY_RUN)
+- set DRY_RUN=1
+- python mentor_executor.py
+
+4) Start mentor (live)
+- set DRY_RUN=0
+- python mentor_executor.py
+
+================================================================================
+F) Historical/Archived Components (mentioned in older stateDiagram versions)
+================================================================================
+
+ไฟล์/โมดูลต่อไปนี้เคยอยู่ในเอกสารรุ่นก่อน แต่ปัจจุบันถูกลบ/ย้ายออกจาก root แล้ว:
+- market_schedule.py / example_market_schedule.py
+- intelligent_mentor_readonly.py / intelligent_dashboard.py
+- ai_llm_confirm_smoke_test.py
+- ai_bridge_v1.py / ai_mentor.py
+- filters/proximity_gate.py
+- archive_orphans.py / quarantine_cleanup.py
+
+แนวคิดสำคัญจากไฟล์กลุ่มนี้ถูกย้ายมาอยู่ใน:
+- mentor_executor.py (startup status + mentor intelligent summary)
+- py_quarantine_orphans.py (AST orphan quarantine)
+- config.json / mt5_executor.py (risk+execution hardening)
+
+================================================================================
+Z) Mermaid State Diagram (Supplement)
+================================================================================
+
+stateDiagram-v2
+  [*] --> Boot
+  Boot --> Load_Config
+  Load_Config --> API_Signal_Preview
+  API_Signal_Preview --> Engine_Generate
+  Engine_Generate --> MultiTF_Vote: default mode M10/M15/M30/H1
+  MultiTF_Vote --> Signal_HOLD: no consensus
+  MultiTF_Vote --> Signal_TRADE: consensus BUY/SELL
+  Signal_HOLD --> Mentor_Intel: intel_enabled && should_send
+  Mentor_Intel --> [*]
+  Signal_TRADE --> AI_Confirm
+  AI_Confirm --> Skip_AI_Denied: approved=false
+  Skip_AI_Denied --> [*]
+  AI_Confirm --> Exec_Guards: approved=true
+  Exec_Guards --> Skip_Spread: spread_check fail
+  Exec_Guards --> Skip_Cooldown: cooldown_active
+  Exec_Guards --> Skip_Pending: pending_order_exists_magic
+  Exec_Guards --> Reverse_Check: opposite position exists
+  Reverse_Check --> Skip_Opposite: reverse disabled or not confirmed
+  Reverse_Check --> Close_Opposite: reverse confirmed
+  Close_Opposite --> Exec_Guards
+  Exec_Guards --> Skip_PositionPolicy: anti-chase / pyramid / reverse policy blocks
+  Exec_Guards --> MT5_Order_Send: guards pass
+  MT5_Order_Send --> Post_SLTP_Enforce
+  Post_SLTP_Enforce --> Trade_Alert: trade telegram
+  Trade_Alert --> [*]

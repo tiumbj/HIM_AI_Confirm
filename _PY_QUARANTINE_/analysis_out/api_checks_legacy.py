@@ -1,0 +1,33 @@
+"""
+test_apis.py
+Version: 2.0.0
+
+Purpose:
+- Basic import validation for config API keys
+- Prevent pytest collection failure
+
+This test does NOT call real APIs.
+It only validates that required config fields exist.
+"""
+
+import pytest
+
+from config import AI_API_KEY, AI_API_URL, NEWS_API_KEYS
+
+
+def test_ai_api_key_exists():
+    assert AI_API_KEY is not None
+    assert isinstance(AI_API_KEY, str)
+
+
+def test_ai_api_url_exists():
+    assert AI_API_URL is not None
+    assert isinstance(AI_API_URL, str)
+
+
+def test_news_api_keys_structure():
+    assert NEWS_API_KEYS is not None
+    assert isinstance(NEWS_API_KEYS, (list, tuple))
+    assert len(NEWS_API_KEYS) > 0
+    for key in NEWS_API_KEYS:
+        assert isinstance(key, str)

@@ -1,0 +1,128 @@
+INSTALLATION & USAGE GUIDEPrerequisites Code # Install required packages
+pip install MetaTrader5 polars numpy requests pytzConfiguration StepsEdit config.py:
+# Update your MT5 credentials
+MT5_LOGIN = YOUR_LOGIN_NUMBER
+MT5_PASS = "YOUR_PASSWORD"
+MT5_SERVER = "YOUR_BROKER_SERVER"
+
+# Add your MarketAux API key
+NEWS_API_KEY = "your_marketaux_api_key"
+
+Get MarketAux API Key:
+
+Visit https://www.marketaux.com/
+Sign up for free account
+Get API key from dashboard
+Test endpoint: https://api.marketaux.com/v1/news/all?api_token=YOUR_KEY&symbols=XAU&filter_entities=true
+
+Verify Telegram Bot:
+
+Bot token and Chat ID are already configured
+Test by running the system
+
+Running the System Code # Single analysis
+python mentor_executor.py
+# Choose option 1
+
+# Continuous monitoring (15-minute intervals)
+python mentor_executor.py
+# Choose option 2
+
+# Custom interval
+python mentor_executor.py
+# Choose option 3 and enter desired intervalTesting Individual Components Code # Test trading engine
+python engine.py
+
+# This will:
+# - Fetch market data
+# - Calculate indicators
+# - Detect market structure
+# - Generate technical snapshots
+# - Calculate confluenceSYSTEM FEATURES IMPLEMENTED✅ 3-File Architectureconfig.py: Centralized configurationengine.py: High-performance data processing with Polarsmentor_executor.py: Connectivity, AI verification, execution✅ Technical Analysis (10+ Indicators)EMA 50/200 - Trend identificationMACD (12,26,9) - MomentumRSI 14 - Overbought/oversoldATR 14 - Volatility measurementParabolic SAR - Trend stopsSupport/Resistance Levels - Key price zonesOrder Blocks - Demand/Supply zonesFair Value Gaps (FVG) - Price imbalancesPin Bars - Reversal patternsLiquidity Sweeps - Stop huntsBOS - Break of StructureCHoCH - Change of Character✅ Multi-Timeframe AnalysisHTF (D1): Overall trendMTF (H1): Zone identificationLTF (M15): Entry timing✅ Market Structure (Dow Theory)Swing highs/lows detectionTrend determinationStructure breaks (BOS/CHoCH)✅ AI VerificationDeepSeek AI integrationConfidence scoringReasoning explanationTrade approval/rejection✅ News SentimentMarketAux API integrationGold-specific news filteringSentiment scoringHeadline analysis✅ Risk Management1% risk per tradeMinimum 2:1 R:R ratioPosition sizing calculationDaily trade limitsSpread checking✅ Resilience & MonitoringHeartbeat connection checks (60s)Auto-reconnect with exponential backoffError handling and loggingTelegram notifications✅ Mentorship SystemHuman-readable explanations"Why" behind every signalAI reasoning transparencyEducational feedbackCONFLUENCE SCORING SYSTEMThe system calculates a weighted confluence score:FactorWeightDescriptionTrend Alignment1.5HTF/MTF/LTF trends alignedEMA Cross1.0EMA 50/200 crossoverOrder Block1.5Price at demand/supply zoneCHoCH1.5Change of character detectedLiquidity Sweep1.5Stop hunt confirmationBOS1.0Break of structureFVG1.0Fair value gap presentPin Bar1.0Reversal patternSupport/Resistance1.0Price at key levelNews Sentiment1.0Sentiment alignmentMACD Signal0.5Momentum confirmationRSI Zone0.5Overbought/oversoldSAR Flip0.5Trend reversalMinimum Confluence Score: 3.0 (configurable)EXAMPLE OUTPUT Code 🎯 HIM TRADING SIGNAL
+========================================
+🕐 Time: 2024-02-24 14:30:00 UTC
+
+🟢 SIGNAL: BUY
+⚖️ Confluence Score: 4.5
+💰 Entry: 2045.50
+🛑 Stop Loss: 2038.20
+🎯 Take Profit: 2060.10
+📊 Risk:Reward: 1:2.0
+
+📚 MENTOR EXPLANATION:
+📊 Multi-Timeframe Trend:
+  • HTF (D1): BULLISH
+  • MTF (H1): BULLISH
+  • LTF (M15): BULLISH
+
+📈 Technical Indicators:
+  • EMA: Bullish Cross
+  • RSI: 32.45 (Oversold)
+  • MACD: Bullish
+  • SAR: Bullish
+
+🏗️ Market Structure:
+  • Break of Structure
+  • 2 Order Blocks
+  • 1 Fair Value Gaps
+
+🎯 Price Action Patterns:
+  • Bullish Pin Bar
+  • Liquidity Sweep Low (Bullish)
+
+📰 News Sentiment:
+  • Overall: BULLISH
+  • Score: 0.45
+  • Articles: 3
+
+⭐ Top Confluence Factors:
+  ✅ Trend Alignment: 1.50
+  ✅ Order Block: 1.50
+  ✅ Liquidity Sweep: 1.50
+  ✅ Pin Bar: 1.00
+  ✅ Ema Cross: 1.00
+
+🤖 AI VERIFICATION:
+✅ Status: APPROVED
+🎯 Confidence: 85.0%
+💭 AI Reasoning:
+Strong bullish setup with multi-timeframe alignment.
+Price at demand zone with liquidity sweep confirmation.
+News sentiment supports upside move.
+
+⚡ EXECUTION DETAILS:
+✅ Trade Executed Successfully
+🎫 Ticket: 123456789
+📦 Volume: 0.10 lots
+💵 Execution Price: 2045.52
+⏰ Time: 14:30:15
+
+========================================
+🤖 Hybrid Intelligence MentorSAFETY FEATURESPre-Trade Checks:
+
+Connection verification
+Daily trade limit
+Open position limit
+Spread validation
+Lot size validation
+
+AI Confidence Threshold:
+
+Minimum 80% AI confidence required
+Conservative rejection on errors
+
+Auto-Reconnect:
+
+5 reconnection attempts
+Exponential backoff (5s, 10s, 20s, 40s, 80s)
+
+Logging:
+
+File logging (him_system.log)
+Console output
+Error tracking
+
+CUSTOMIZATIONEdit config.py to adjust:Risk percentageConfluence thresholdAI 
+confidence thresholdIndicator periodsTimeframesTrade limitsSystem Status: READY 
+FOR DEPLOYMENT ✅All three files are complete with no placeholders. The system is 
+production-ready with full error handling, resilience, and mentorship capabilities.

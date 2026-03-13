@@ -1,0 +1,89 @@
+{
+  "mode": "B",
+  "symbol": "GOLD",
+  "enable_execution": false,
+  "confidence_threshold": 75,
+  "min_score": 7.0,
+  "min_rr": 2.0,
+  "lot": 0.01,
+
+  "structure_sensitivity": {
+    "htf": 4,
+    "mtf": 3,
+    "ltf": 2
+  },
+
+  "supertrend": {
+    "period": 14,
+    "multiplier": 3..5
+  },
+
+  "risk": {
+    "atr_period": 14,
+    "atr_sl_mult": 1.8
+  },
+
+  "timeframes": {
+    "htf": "H1",
+    "mtf": "M30",
+    "ltf": "M5"
+  },
+
+  "profiles": {
+    "A": {
+      "mode": "A",
+      "symbol": "GOLD",
+      "enable_execution": false,
+      "confidence_threshold": 85,
+      "min_score": 8.0,
+      "min_rr": 2.5,
+      "lot": 0.01,
+      "structure_sensitivity": { "htf": 6, "mtf": 5, "ltf": 4 },
+      "supertrend": { "period": 10, "multiplier": 3.5 },
+      "risk": { "atr_period": 14, "atr_sl_mult": 2.0 },
+      "timeframes": { "htf": "H4", "mtf": "H1", "ltf": "M15" }
+    },
+
+    "B": {
+      "mode": "B",
+      "symbol": "GOLD",
+      "enable_execution": false,
+      "confidence_threshold": 75,
+      "min_score": 7.0,
+      "min_rr": 2.0,
+      "lot": 0.01,
+      "structure_sensitivity": { "htf": 5, "mtf": 4, "ltf": 3 },
+      "supertrend": { "period": 10, "multiplier": 3.0 },
+      "risk": { "atr_period": 14, "atr_sl_mult": 1.8 },
+      "timeframes": { "htf": "H4", "mtf": "H1", "ltf": "M15" }
+    },
+
+    "C": {
+      "mode": "C",
+      "symbol": "GOLD",
+      "enable_execution": false,
+      "confidence_threshold": 65,
+      "min_score": 6.0,
+      "min_rr": 1.8,
+      "lot": 0.01,
+      "structure_sensitivity": { "htf": 4, "mtf": 3, "ltf": 2 },
+      "supertrend": { "period": 7, "multiplier": 2.5 },
+      "risk": { "atr_period": 14, "atr_sl_mult": 1.6 },
+      "timeframes": { "htf": "H4", "mtf": "H1", "ltf": "M15" }
+    }
+  },
+
+  "telegram": {
+    "enabled": true,
+    "token_env": "TELEGRAM_BOT_TOKEN",
+    "chat_id_env": "TELEGRAM_CHAT_ID",
+    "notify_on": ["signal", "trade", "error"]
+  },
+
+  "ai": {
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "timeout_seconds": 10,
+    "retry_attempts": 3,
+    "fallback_to_technical": true
+  }
+}

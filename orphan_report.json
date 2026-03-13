@@ -1,0 +1,1217 @@
+{
+  "root": "C:/Hybrid_Intelligence_Mentor",
+  "entry_modules": [
+    "ai_bridge_v1",
+    "ai_confirmation_telegram",
+    "ai_llm_confirm_smoke_test",
+    "ai_mentor",
+    "ai_signal_tester",
+    "analyzer_v1_0",
+    "api_checks_legacy",
+    "api_server",
+    "archive_orphans",
+    "candidate_replay_runner_v1_0_0",
+    "candidate_replay_runner_v1_0_2",
+    "candidate_replay_runner_v1_0_3",
+    "candidate_replay_runner_v1_0_4",
+    "candidate_replay_runner_v1_0_6",
+    "candidate_replay_runner_v1_0_7",
+    "candidate_replay_runner_v1_0_8",
+    "candidate_replay_runner_v1_0_9",
+    "candidate_replay_runner_v1_1_0",
+    "commissioning_runner",
+    "commissioning_runner_backUp_latset_version",
+    "commissioning_runner_old",
+    "dashboard",
+    "engine",
+    "engine_debug_replay",
+    "engine_old1",
+    "example_market_schedule",
+    "force_execution_test",
+    "intelligent_dashboard",
+    "intelligent_dashboard back up",
+    "intelligent_mentor_readonly",
+    "mentor_executor",
+    "mentor_executor_json",
+    "mentor_executorbackup",
+    "mt5_executor",
+    "mt5_tester",
+    "mt5_time",
+    "news_api_test",
+    "performance_tracker",
+    "regime_switch_executor",
+    "remove_emoji",
+    "risk_guard_hardstop",
+    "test_ai_api",
+    "test_news_api",
+    "test_risk_guard_v1_0",
+    "tests.conftest",
+    "tests.test_event_gating",
+    "tools.analyze_bos",
+    "tools.analyze_metrics",
+    "tools.analyze_rr",
+    "tools.blocker_stats",
+    "tools.collect_events",
+    "tools.mentor_telegram_sender",
+    "trade_analytics",
+    "trade_close_monitor",
+    "validator_integration_test",
+    "watchdog_supervisor"
+  ],
+  "reachable_modules_count": 63,
+  "python_files_count": 82,
+  "all_files_count": 191,
+  "dynamic_import_unknown_modules": [],
+  "orphaned": [
+    {
+      "path": ".commission_event_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".execution_dedup_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".force_exec_last_sig.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "ai_response_log.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "bu.txt",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "candidate_replay_runner_v1_0_5.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "check_env.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "Code Run Test.txt",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config.backup.before_candidate_unlock.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config.backup.before_modec_test.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config.backup.before_sens_tune.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config.backup.before_st_change.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config.json.backup.20260226_212540",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config.py.backup_emoji",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "config_backup.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "dashboard.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "dashboard.log",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "dashboard_back_up.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "DB.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "emergency_fix.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "engine.py.backup",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "engine.py.backup_emoji",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "engine.py.backup_v2_0_1_before_v2_0_2",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "engine.py.backup_v2_0_4_before_v2_0_5",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "engine.py.broken_v2_0_2_backup",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "engine.py.final_backup",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "enginebackup.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "engine_backup.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "engine_old2.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "example_dashboard.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "example_dashboard_v2.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "instructions.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "instructions.txt",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "mentor_executor.py.backup_emoji",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "news_filter.py",
+      "kind": "python",
+      "incoming_imports": 2,
+      "flag_reasons": [
+        "unreachable_from_entrypoints"
+      ]
+    },
+    {
+      "path": "performance_stats.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "proximity_gate.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "pytest.ini",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "README_TH.md",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "regime_switch.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "Run procedure.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "strategy_profiles.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "strategy_router.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "test_news.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "trade_close_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "trade_history.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "trade_log_20260226.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".pytest_cache/CACHEDIR.TAG",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".pytest_cache/v/cache/lastfailed",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".pytest_cache/v/cache/nodeids",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/CACHEDIR.TAG",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/13690088738003566994",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/1449775547253812774",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/15119940856512029899",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/18254211992678598312",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/2879522960989976463",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/4726977352471166306",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/5486556942028546268",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/8437768699271203273",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".ruff_cache/0.15.5/9898101568865061606",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/bias_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/effective_config.executor.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/effective_config.regime.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/engine_pkg_dump.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/executor_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/positions.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/positions_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/replay_resume_GOLD_M5.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": ".state/strategy_router_state.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "analysis_out/api_checks_legacy.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "analysis_out/blocked_by.csv",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "analysis_out/candidates_stats.csv",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "analysis_out/pytest.ini",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "analysis_out/report.md",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "analysis_out/summary.json",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "analysis_out/test_validator_v1_0.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "analysis_out/validator_v1_0.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-02.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-03.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-05.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-31.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-03-31.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "backtests/trace_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    },
+    {
+      "path": "filters/proximity_gate.py",
+      "kind": "python",
+      "incoming_imports": 3,
+      "flag_reasons": [
+        "unreachable_from_entrypoints"
+      ]
+    },
+    {
+      "path": "filters/__init__.py",
+      "kind": "python",
+      "incoming_imports": 0,
+      "flag_reasons": [
+        "unreachable_from_entrypoints",
+        "0_incoming_imports"
+      ]
+    },
+    {
+      "path": "templates/dashboard.html",
+      "kind": "asset",
+      "incoming_references": 0,
+      "flag_reasons": [
+        "unreferenced_asset"
+      ]
+    }
+  ],
+  "archive_dir": "_deprecated_archive",
+  "dry_run": true,
+  "actions": [
+    {
+      "src": ".commission_event_state.json",
+      "dst": "_deprecated_archive/.commission_event_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".execution_dedup_state.json",
+      "dst": "_deprecated_archive/.execution_dedup_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".force_exec_last_sig.json",
+      "dst": "_deprecated_archive/.force_exec_last_sig.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "ai_response_log.json",
+      "dst": "_deprecated_archive/ai_response_log.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "bu.txt",
+      "dst": "_deprecated_archive/bu.txt",
+      "action": "dry_run"
+    },
+    {
+      "src": "candidate_replay_runner_v1_0_5.py",
+      "dst": "_deprecated_archive/candidate_replay_runner_v1_0_5.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "check_env.py",
+      "dst": "_deprecated_archive/check_env.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "Code Run Test.txt",
+      "dst": "_deprecated_archive/Code Run Test.txt",
+      "action": "dry_run"
+    },
+    {
+      "src": "config.backup.before_candidate_unlock.json",
+      "dst": "_deprecated_archive/config.backup.before_candidate_unlock.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "config.backup.before_modec_test.json",
+      "dst": "_deprecated_archive/config.backup.before_modec_test.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "config.backup.before_sens_tune.json",
+      "dst": "_deprecated_archive/config.backup.before_sens_tune.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "config.backup.before_st_change.json",
+      "dst": "_deprecated_archive/config.backup.before_st_change.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "config.json.backup.20260226_212540",
+      "dst": "_deprecated_archive/config.json.backup.20260226_212540",
+      "action": "dry_run"
+    },
+    {
+      "src": "config.py.backup_emoji",
+      "dst": "_deprecated_archive/config.py.backup_emoji",
+      "action": "dry_run"
+    },
+    {
+      "src": "config_backup.json",
+      "dst": "_deprecated_archive/config_backup.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "dashboard.html",
+      "dst": "_deprecated_archive/dashboard.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "dashboard.log",
+      "dst": "_deprecated_archive/dashboard.log",
+      "action": "dry_run"
+    },
+    {
+      "src": "dashboard_back_up.html",
+      "dst": "_deprecated_archive/dashboard_back_up.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "DB.html",
+      "dst": "_deprecated_archive/DB.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "emergency_fix.py",
+      "dst": "_deprecated_archive/emergency_fix.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine.py.backup",
+      "dst": "_deprecated_archive/engine.py.backup",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine.py.backup_emoji",
+      "dst": "_deprecated_archive/engine.py.backup_emoji",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine.py.backup_v2_0_1_before_v2_0_2",
+      "dst": "_deprecated_archive/engine.py.backup_v2_0_1_before_v2_0_2",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine.py.backup_v2_0_4_before_v2_0_5",
+      "dst": "_deprecated_archive/engine.py.backup_v2_0_4_before_v2_0_5",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine.py.broken_v2_0_2_backup",
+      "dst": "_deprecated_archive/engine.py.broken_v2_0_2_backup",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine.py.final_backup",
+      "dst": "_deprecated_archive/engine.py.final_backup",
+      "action": "dry_run"
+    },
+    {
+      "src": "enginebackup.py",
+      "dst": "_deprecated_archive/enginebackup.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine_backup.py",
+      "dst": "_deprecated_archive/engine_backup.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "engine_old2.py",
+      "dst": "_deprecated_archive/engine_old2.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "example_dashboard.html",
+      "dst": "_deprecated_archive/example_dashboard.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "example_dashboard_v2.html",
+      "dst": "_deprecated_archive/example_dashboard_v2.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "instructions.html",
+      "dst": "_deprecated_archive/instructions.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "instructions.txt",
+      "dst": "_deprecated_archive/instructions.txt",
+      "action": "dry_run"
+    },
+    {
+      "src": "mentor_executor.py.backup_emoji",
+      "dst": "_deprecated_archive/mentor_executor.py.backup_emoji",
+      "action": "dry_run"
+    },
+    {
+      "src": "news_filter.py",
+      "dst": "_deprecated_archive/news_filter.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "performance_stats.json",
+      "dst": "_deprecated_archive/performance_stats.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "proximity_gate.py",
+      "dst": "_deprecated_archive/proximity_gate.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "pytest.ini",
+      "dst": "_deprecated_archive/pytest.ini",
+      "action": "dry_run"
+    },
+    {
+      "src": "README_TH.md",
+      "dst": "_deprecated_archive/README_TH.md",
+      "action": "dry_run"
+    },
+    {
+      "src": "regime_switch.py",
+      "dst": "_deprecated_archive/regime_switch.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "Run procedure.html",
+      "dst": "_deprecated_archive/Run procedure.html",
+      "action": "dry_run"
+    },
+    {
+      "src": "strategy_profiles.py",
+      "dst": "_deprecated_archive/strategy_profiles.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "strategy_router.py",
+      "dst": "_deprecated_archive/strategy_router.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "test_news.py",
+      "dst": "_deprecated_archive/test_news.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "trade_close_state.json",
+      "dst": "_deprecated_archive/trade_close_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "trade_history.json",
+      "dst": "_deprecated_archive/trade_history.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "trade_log_20260226.json",
+      "dst": "_deprecated_archive/trade_log_20260226.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".pytest_cache/CACHEDIR.TAG",
+      "dst": "_deprecated_archive/.pytest_cache/CACHEDIR.TAG",
+      "action": "dry_run"
+    },
+    {
+      "src": ".pytest_cache/v/cache/lastfailed",
+      "dst": "_deprecated_archive/.pytest_cache/v/cache/lastfailed",
+      "action": "dry_run"
+    },
+    {
+      "src": ".pytest_cache/v/cache/nodeids",
+      "dst": "_deprecated_archive/.pytest_cache/v/cache/nodeids",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/CACHEDIR.TAG",
+      "dst": "_deprecated_archive/.ruff_cache/CACHEDIR.TAG",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/13690088738003566994",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/13690088738003566994",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/1449775547253812774",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/1449775547253812774",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/15119940856512029899",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/15119940856512029899",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/18254211992678598312",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/18254211992678598312",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/2879522960989976463",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/2879522960989976463",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/4726977352471166306",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/4726977352471166306",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/5486556942028546268",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/5486556942028546268",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/8437768699271203273",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/8437768699271203273",
+      "action": "dry_run"
+    },
+    {
+      "src": ".ruff_cache/0.15.5/9898101568865061606",
+      "dst": "_deprecated_archive/.ruff_cache/0.15.5/9898101568865061606",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/bias_state.json",
+      "dst": "_deprecated_archive/.state/bias_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/effective_config.executor.json",
+      "dst": "_deprecated_archive/.state/effective_config.executor.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/effective_config.regime.json",
+      "dst": "_deprecated_archive/.state/effective_config.regime.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/engine_pkg_dump.jsonl",
+      "dst": "_deprecated_archive/.state/engine_pkg_dump.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/executor_state.json",
+      "dst": "_deprecated_archive/.state/executor_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/positions.json",
+      "dst": "_deprecated_archive/.state/positions.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/positions_state.json",
+      "dst": "_deprecated_archive/.state/positions_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/replay_resume_GOLD_M5.json",
+      "dst": "_deprecated_archive/.state/replay_resume_GOLD_M5.json",
+      "action": "dry_run"
+    },
+    {
+      "src": ".state/strategy_router_state.json",
+      "dst": "_deprecated_archive/.state/strategy_router_state.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/api_checks_legacy.py",
+      "dst": "_deprecated_archive/analysis_out/api_checks_legacy.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/blocked_by.csv",
+      "dst": "_deprecated_archive/analysis_out/blocked_by.csv",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/candidates_stats.csv",
+      "dst": "_deprecated_archive/analysis_out/candidates_stats.csv",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/pytest.ini",
+      "dst": "_deprecated_archive/analysis_out/pytest.ini",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/report.md",
+      "dst": "_deprecated_archive/analysis_out/report.md",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/summary.json",
+      "dst": "_deprecated_archive/analysis_out/summary.json",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/test_validator_v1_0.py",
+      "dst": "_deprecated_archive/analysis_out/test_validator_v1_0.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "analysis_out/validator_v1_0.py",
+      "dst": "_deprecated_archive/analysis_out/validator_v1_0.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-02.jsonl",
+      "dst": "_deprecated_archive/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-02.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-03.jsonl",
+      "dst": "_deprecated_archive/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-03.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-05.jsonl",
+      "dst": "_deprecated_archive/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-05.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "dst": "_deprecated_archive/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-31.jsonl",
+      "dst": "_deprecated_archive/backtests/candidates_GOLD_M5_2025-01-01_to_2025-01-31.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/candidates_GOLD_M5_2025-01-01_to_2025-03-31.jsonl",
+      "dst": "_deprecated_archive/backtests/candidates_GOLD_M5_2025-01-01_to_2025-03-31.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "backtests/trace_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "dst": "_deprecated_archive/backtests/trace_GOLD_M5_2025-01-01_to_2025-01-10.jsonl",
+      "action": "dry_run"
+    },
+    {
+      "src": "filters/proximity_gate.py",
+      "dst": "_deprecated_archive/filters/proximity_gate.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "filters/__init__.py",
+      "dst": "_deprecated_archive/filters/__init__.py",
+      "action": "dry_run"
+    },
+    {
+      "src": "templates/dashboard.html",
+      "dst": "_deprecated_archive/templates/dashboard.html",
+      "action": "dry_run"
+    }
+  ]
+}

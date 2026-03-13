@@ -1,0 +1,7 @@
+blocked_by,count,pct
+None,200,35.8%
+no_mean_reversion_trigger,128,22.9%
+rr_too_low,105,18.8%
+not_sideway_adx,54,9.7%
+"not_sideway_adx,not_sideway_bbwidth",39,7.0%
+not_sideway_bbwidth,33,5.9%
