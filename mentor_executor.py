@@ -2,11 +2,11 @@
 # ชื่อโค้ด: HIM Mentor Executor (mentor_executor.py)
 # ที่อยู่ไฟล์: c:\Data\Bot\HIM_AI_Confirm\mentor_executor.py
 # คำสั่งรัน: python mentor_executor.py
-# เวอร์ชัน: v1.0.1
+# เวอร์ชัน: v1.0.2
 # ============================================================
 """
 mentor_executor.py
-Version: v1.0.1
+Version: v1.0.2
 Purpose: Production Orchestrator for HIM
          Signal Source -> AI Final Confirm -> MT5 Executor
 
@@ -37,6 +37,16 @@ SYMBOL          default: GOLD
 Notes:
 - You can keep SIGNAL_URL pointing to your engine endpoint.
 - You can keep AI_CONFIRM_URL pointing to your AI confirmation service endpoint.
+
+========================================================
+CHANGELOG
+========================================================
+- v1.0.2 (Phase 7):
+    * Add synchronous KILL_SWITCH.txt check before execution
+    * Use __file__-based path for deterministic kill-switch location
+    * Fail-closed: block if file exists or read fails
+    * Zero post-breach trades guarantee
+- v1.0.1: Initial production orchestrator
 """
 
 from __future__ import annotations
@@ -59,7 +69,11 @@ from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 # -----------------------------
 # VERSION
 # -----------------------------
-VERSION = "v1.0.1"
+VERSION = "v1.0.2"
+
+# Phase 7: Deterministic path resolution
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
 
 
 # -----------------------------
@@ -259,6 +273,29 @@ def make_request_id(symbol: str, decision: str, plan: Dict[str, Any]) -> str:
     h = hashlib.sha1(key.encode("utf-8")).hexdigest()[:8]
     r = uuid.uuid4().hex[:6]
     return f"{ts}_{symbol}_{decision}_{h}_{r}"
+
+
+def _kill_switch_active() -> Tuple[bool, str]:
+    """
+    Phase 7: Synchronous kill-switch check for fail-safe enforcement.
+    Returns: (active: bool, reason: str)
+
+    Fail-closed behavior:
+    - If KILL_SWITCH.txt exists and can be read -> (True, content)
+    - If KILL_SWITCH.txt exists but cannot be read -> (True, "KILL_SWITCH_READ_ERROR")
+    - If KILL_SWITCH.txt does not exist -> (False, "")
+
+    Uses PROJECT_ROOT from __file__ for deterministic path resolution.
+    """
+    if not os.path.exists(KILL_SWITCH_PATH):
+        return False, ""
+    try:
+        with open(KILL_SWITCH_PATH, "r", encoding="utf-8", errors="replace") as f:
+            reason = f.read().strip()[:500]
+        return True, reason
+    except Exception:
+        # Fail-closed: if file exists but cannot be read, assume active
+        return True, "KILL_SWITCH_READ_ERROR"
 
 
 # -----------------------------
@@ -996,6 +1033,29 @@ class MentorExecutor:
             self.log({"event": "dry_run_end", "pkg": pkg, "out": out})
             return out
 
+        # ========================================
+        # PHASE 7: SYNCHRONOUS KILL-SWITCH CHECK
+        # ========================================
+        # Production fail-safe: Check kill switch immediately before execution
+        # Fail-closed: If KILL_SWITCH.txt exists (or cannot be read), block execution
+        # Uses __file__-based path for deterministic resolution
+        kill_active, kill_reason = _kill_switch_active()
+        if kill_active:
+            out = {
+                "status": "SKIP",
+                "reason": "kill_switch_active",
+                "kill_switch_reason": kill_reason,
+                "request_id": pkg.get("request_id"),
+            }
+            self.log({
+                "event": "kill_switch_block",
+                "request_id": pkg.get("request_id"),
+                "kill_switch_reason": kill_reason,
+                "out": out,
+            })
+            return out
+        # ========================================
+
         # 5) Execute via mt5_executor (final authority)
         mt5_out = self.mt5.execute(pkg)
         if self.verbose_status and isinstance(mt5_out, dict) and mt5_out.get("reason") == "ai_denied":
@@ -1026,6 +1086,7 @@ class MentorExecutor:
                 "poll_interval": self.poll_interval,
                 "dry_run": self.dry_run,
                 "symbol": self.symbol,
+                "kill_switch_path": KILL_SWITCH_PATH,
             }
         )
 
@@ -1040,6 +1101,7 @@ class MentorExecutor:
 # -----------------------------
 if __name__ == "__main__":
     print(f"[MentorExecutor] file={os.path.abspath(__file__)} version={VERSION}")
+    print(f"[MENTOR] kill_switch_path={KILL_SWITCH_PATH}")
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("--poll", default=None)
     ap.add_argument("--live", action="store_true")

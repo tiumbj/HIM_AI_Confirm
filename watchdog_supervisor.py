@@ -1,6 +1,6 @@
 # ============================================================
 #  watchdog_supervisor.py — HIM Auto Crash Recovery Supervisor
-#  Version: v1.0.0
+#  Version: v1.0.1
 #  Created: 2026-03-05
 #
 #  Strategy Header (Project Rule):
@@ -14,6 +14,8 @@
 #   3) streamlit run intelligent_dashboard.py --server.port <port>
 #
 #  Changelog:
+#   - v1.0.1 (Phase 7):
+#       * Use __file__-based PROJECT_ROOT for deterministic KILL_SWITCH path
 #   - v1.0.0:
 #       * Auto-restart with exponential backoff
 #       * Kill-switch integration (forces DRY_RUN=1 on mentor_executor)
@@ -31,9 +33,9 @@ import time
 from dataclasses import dataclass
 from typing import Dict, Optional, List, Any, Tuple
 
-APP_VERSION = "v1.0.0"
+APP_VERSION = "v1.0.1"
 
-PROJECT_ROOT = os.getcwd()
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 WATCHDOG_LOG = os.path.join(LOG_DIR, "watchdog_supervisor.jsonl")
 
@@ -233,6 +235,7 @@ def main() -> int:
         "event": "watchdog_start",
         "version": APP_VERSION,
         "project_root": PROJECT_ROOT,
+        "kill_switch_path": KILL_SWITCH_PATH,
         "config_path": CONFIG_PATH,
         "api_base": api_base,
         "dashboard": {"host": dash_host, "port": dash_port},

@@ -1,0 +1,453 @@
+State Diagram (Consolidated — Phase 7 Edition)
+Project: Hybrid Intelligence Mentor (HIM) — MT5 GOLD (XAUUSD)
+Updated: 2026-03-13
+
+Purpose
+- รวม stateDiagram ทุก Phase ให้เหลือไฟล์เดียวสำหรับ handoff/รันงานจริง
+- อัปเดตด้วย Phase 7: Synchronous Kill-Switch Enforcement + Deterministic Path Resolution
+- เป็น "state diagram แบบ wording" เป็นหลัก (มี Mermaid เสริมท้ายไฟล์)
+
+Legend
+- ✅ Done: ใช้งานได้ตามหน้าที่หลัก
+- 🟡 In Progress: ทำงานได้บางส่วน/ยังต้องต่อ/ยังต้องมี evidence
+- ⏳ Pending: ยังไม่เริ่มหรือยังไม่เชื่อมเข้าระบบหลัก
+- 🔴 Issues: มีปัญหาที่ทำให้ระบบไม่เสถียรหรือผิดเงื่อนไข production
+
+================================================================================
+CODE VERSIONS (Phase 7)
+================================================================================
+
+| File                     | Version  | Phase  | Notes                              |
+|--------------------------|----------|--------|------------------------------------|
+| mentor_executor.py       | v1.0.2   | 7      | +sync kill-switch check, __file__  |
+| risk_guard_hardstop.py   | v1.1.1   | 7      | __file__-based PROJECT_ROOT        |
+| watchdog_supervisor.py   | v1.0.1   | 7      | __file__-based PROJECT_ROOT        |
+| mt5_executor.py          | v1.3.1+  | -      | Execution hardening (unchanged)    |
+| engine.py                | -        | -      | Signal generation (unchanged)      |
+| api_server.py            | -        | -      | Flask API server (unchanged)       |
+| telegram_notifier.py     | -        | -      | Notification path (unchanged)      |
+| config.json              | -        | -      | SSOT knobs (unchanged)             |
+
+================================================================================
+0) High-Level State Flow (Text)
+================================================================================
+
+Project_Boot
+  -> Config_SSOT (config.json)
+  -> Engine_Core (signal + plan + metrics + blocked_by)
+  -> API_Server (signal_preview + ai_confirm)
+  -> Mentor_Executor (orchestrator)
+      -> [Phase 7] Synchronous KILL_SWITCH.txt check (fail-closed)
+          -> If KILL_SWITCH.txt EXISTS => SKIP immediately (status=SKIP, reason=kill_switch_active)
+          -> If KILL_SWITCH.txt ABSENT => Continue to AI confirm
+  -> AI_Final_Confirm (confirm-only)
+  -> MT5_Executor_Hardening (fail-closed)
+  -> MT5_OrderSend
+  -> Logs/Stats/Notify
+
+Kill-Switch Defense in Depth (Phase 7)
+  Layer 1 (Sync): mentor_executor.py checks KILL_SWITCH.txt before EVERY execution
+    - Zero trades after breach (eliminates 1–6 second enforcement gap)
+  Layer 2 (Async): watchdog_supervisor.py forces DRY_RUN=1 on mentor restart
+    - Async backup: ensures DRY_RUN persists across restarts
+  Layer 3 (Write): risk_guard_hardstop.py writes KILL_SWITCH.txt on breach
+    - Source of truth: writes the file that Layers 1 & 2 read
+
+Deterministic Path (Phase 7)
+  All three components resolve KILL_SWITCH.txt using:
+    PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+    KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
+  This ensures the same file is used regardless of the working directory
+  at process start time.
+
+Core invariants (ห้ามเปลี่ยนหลักการ)
+- Confirm-only: AI อนุญาต/ปฏิเสธเท่านั้น และต้องไม่แก้ plan (entry/sl/tp)
+- Fail-closed: ข้อมูลขาด/ผิดรูปแบบ/เชื่อมต่อไม่ได้ => SKIP ไม่เทรด
+- Fail-closed (Phase 7): KILL_SWITCH.txt exists or read error => SKIP ไม่เทรด
+- Telegram separation:
+  - Trade room: TELEGRAM_TRADE_CHAT_ID (trade/execution alerts)
+  - Mentor room: TELEGRAM_MENTOR_CHAT_ID (read-only/teaching/diagnostics)
+  - Guard: ถ้า mentor_chat_id == trade_chat_id จะ block การส่งเพื่อกันปนห้อง
+
+================================================================================
+PHASE HISTORY
+================================================================================
+
+Phase 2 — Config SSOT (Verified no-op)
+  - config.json is single source of truth for all knobs
+  - No code change required
+
+Phase 3 — Production Wiring (Verified no-op)
+  - Production wiring already correct
+  - No code change required
+
+Phase 4 — Magic Number Unification (Verified no-op)
+  - Magic number is unified across mt5_executor.py
+  - No code change required
+
+Phase 5 — Event Timeframe Config (Verified no-op)
+  - Event timeframe config works correctly
+  - No code change required
+
+Phase 6 — AI Confirm Pipeline (Verified no-op)
+  - AI confirm pipeline is consistent (confirm-only)
+  - No code change required
+
+Phase 7 — Synchronous Kill-Switch + Deterministic Path Resolution ✅ COMPLETED
+  Files changed:
+    mentor_executor.py  v1.0.1 -> v1.0.2
+    risk_guard_hardstop.py  v1.1.0 -> v1.1.1
+    watchdog_supervisor.py  v1.0.0 -> v1.0.1
+  Changes:
+    1. mentor_executor.py:
+       - Added PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+       - Added KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
+       - Added _kill_switch_active() function (fail-closed)
+       - Added synchronous check immediately before self.mt5.execute(pkg)
+       - Returns {status: SKIP, reason: kill_switch_active} if active
+       - Logs {event: kill_switch_block} with request_id and kill_switch_reason
+       - Updated "mentor_start" log to include kill_switch_path
+       - Prints [MENTOR] kill_switch_path=... at startup
+    2. risk_guard_hardstop.py:
+       - Changed PROJECT_ROOT from os.getcwd() to os.path.dirname(os.path.abspath(__file__))
+       - Added kill_switch_path to "initialized" log event
+       - Added logger.info(f"kill_switch_path={KILL_SWITCH_PATH}")
+    3. watchdog_supervisor.py:
+       - Changed PROJECT_ROOT from os.getcwd() to os.path.dirname(os.path.abspath(__file__))
+       - Added kill_switch_path to "watchdog_start" log event
+
+================================================================================
+A) Current Runtime Inventory (as of 2026-03-13, Phase 7)
+================================================================================
+
+Core runtime (ต้องมีเพื่อรันระบบหลัก)
+- config.json — ✅ (SSOT knobs; unchanged)
+- engine.py — ✅ (Production model; สร้าง signal package; unchanged)
+- api_server.py — ✅ (Flask API server; endpoints + normalize; unchanged)
+- mentor_executor.py — ✅ v1.0.2 (Phase 7: sync kill-switch + __file__ path)
+- mt5_executor.py — ✅ (Execution hardening + adaptive pyramiding; unchanged)
+- telegram_notifier.py — ✅ (notification path; unchanged)
+- risk_guard_hardstop.py — ✅ v1.1.1 (Phase 7: __file__ path)
+- watchdog_supervisor.py — ✅ v1.0.1 (Phase 7: __file__ path)
+
+Optional (มี/ไม่มีได้ แต่แนะนำให้เก็บ)
+- tools/ — 🟡 (offline analytics/utilities; ไม่กระทบ autotrade)
+- tests/ — 🟡 (regression tests; ถ้าลบจะเหลือการตรวจแบบ runtime smoke)
+- logs/ — runtime artifacts (ควร gitignore)
+
+================================================================================
+B) API Server (api_server.py)
+================================================================================
+
+Endpoints (ต้องทำงาน)
+- GET  /api/health
+- GET  /api/status
+- GET  /api/signal_preview
+- POST /api/ai_confirm
+
+API signal decision modes
+- Default: multi-TF vote mode (M10/M15/M30/H1) + threshold decision_min_agree
+- Override mode: ?event_timeframe=M15 เพื่อ debug/monitor ราย TF
+- Enriched output includes:
+  - multi_tf (per TF snapshot)
+  - decision_votes (BUY/SELL/min_agree)
+
+Startup notify (optional)
+- ส่ง Telegram ตอน start (ไป TELEGRAM_CHAT_ID) เมื่อ:
+  - API_STARTUP_NOTIFY=1 และมี TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID
+
+================================================================================
+C) Mentor Executor (mentor_executor.py) — v1.0.2
+================================================================================
+
+Version: v1.0.2 (Phase 7)
+
+Responsibilities
+- Poll signal: SIGNAL_URL (default /api/signal_preview)
+- Call AI confirm: AI_CONFIRM_URL (default /api/ai_confirm)
+- Enforce confirm-only merge (AI ห้ามแก้ plan)
+- [Phase 7] Check KILL_SWITCH.txt synchronously before execution (fail-closed)
+- Execute via mt5_executor (เป็น final authority)
+- Logs: logs/mentor_executor.jsonl
+
+Phase 7 Kill-Switch Check (NEW in v1.0.2)
+- Runs immediately before self.mt5.execute(pkg) on EVERY cycle
+- KILL_SWITCH.txt path: {script_dir}/KILL_SWITCH.txt (deterministic via __file__)
+- Behavior:
+  - File absent => (False, "") => continue normal execution
+  - File exists, readable => (True, content[:500]) => SKIP
+  - File exists, unreadable => (True, "KILL_SWITCH_READ_ERROR") => SKIP (fail-closed)
+- On block: returns {status: SKIP, reason: kill_switch_active, kill_switch_reason: ..., request_id: ...}
+- Logs event: kill_switch_block with request_id and kill_switch_reason
+
+Telegram behavior
+- Mentor room: ส่งเฉพาะ startup status + intelligent/teaching
+- Guard: ถ้า mentor_chat_id == trade_chat_id จะไม่ส่ง
+
+Startup log (mentor_start event)
+- signal_url, ai_confirm_url, poll_interval, dry_run, symbol
+- kill_switch_path (Phase 7: new field)
+
+Console output at startup
+- [MentorExecutor] file=... version=v1.0.2
+- [MENTOR] kill_switch_path=... (Phase 7: new line)
+
+Env knobs (สำคัญ)
+- SIGNAL_URL, AI_CONFIRM_URL, POLL_INTERVAL, DRY_RUN, SYMBOL
+- MENTOR_TELEGRAM_ENABLED, MENTOR_STARTUP_NOTIFY, AUTOTRADE_STARTUP_NOTIFY
+- TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_MENTOR_CHAT_ID
+
+================================================================================
+D) Risk Guard Hardstop (risk_guard_hardstop.py) — v1.1.1
+================================================================================
+
+Version: v1.1.1 (Phase 7)
+
+Responsibilities
+- Enforce real MT5-based drawdown/position constraints
+- Write KILL_SWITCH.txt on breach (fail-closed)
+- Supervisor forces mentor_executor DRY_RUN=1 when KILL_SWITCH exists
+
+Phase 7 Change (v1.1.0 -> v1.1.1)
+- PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))  [was os.getcwd()]
+- KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
+- logger.info(f"kill_switch_path={KILL_SWITCH_PATH}") at initialization
+- "initialized" log event now includes kill_switch_path field
+
+Risk limits (from config.json)
+- max_daily_dd_pct
+- max_total_dd_pct
+- max_open_positions
+- max_total_volume
+
+Initialization log (event: initialized)
+- config_path, enabled, poll_interval_sec
+- max_daily_dd_pct, max_total_dd_pct, max_open_positions, max_total_volume
+- kill_switch_path (Phase 7: new field)
+
+================================================================================
+E) Watchdog Supervisor (watchdog_supervisor.py) — v1.0.1
+================================================================================
+
+Version: v1.0.1 (Phase 7)
+
+Responsibilities
+- Run + monitor critical HIM processes (api_server, mentor_executor)
+- Auto-restart with exponential backoff on crash
+- Force DRY_RUN=1 on mentor_executor if KILL_SWITCH.txt exists (async enforcement)
+- Writes logs/watchdog_supervisor.jsonl
+
+Managed processes
+1. python api_server.py
+2. python mentor_executor.py   (forced DRY_RUN=1 if KILL_SWITCH exists)
+3. streamlit run intelligent_dashboard.py --server.port <port>  [dashboard — keep current state]
+
+Phase 7 Change (v1.0.0 -> v1.0.1)
+- PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))  [was os.getcwd()]
+- KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
+- "watchdog_start" log event now includes kill_switch_path field
+
+Startup log (event: watchdog_start)
+- version, project_root, kill_switch_path (Phase 7: new field)
+- config_path, api_base, dashboard
+
+================================================================================
+F) MT5 Executor Hardening (mt5_executor.py) — unchanged
+================================================================================
+
+Fail-closed guards (สำคัญ)
+- request_id required + dedup persistent state
+- ai_confirm.approved ต้อง true (ไม่งั้น SKIP)
+- decision ต้อง BUY/SELL เท่านั้น
+- plan ต้องมี entry/sl/tp และเป็น number/side ถูกต้อง
+- spread/cooldown/margin checks
+- logging ทุกเหตุการณ์ลง logs/execution_orders.jsonl
+
+Adaptive pyramiding policy
+- ไม่ fix จำนวนไม้ แต่ "เพิ่มไม้เฉพาะตอนเทรนด์ไปทางถูก"
+- Env knobs: EXECUTION_PYRAMID_ENABLE, EXECUTION_PYRAMID_STEP_ATR,
+  EXECUTION_PYRAMID_MIN_ALIGN, EXECUTION_PYRAMID_ALLOW_REGIMES,
+  EXECUTION_PYRAMID_MAX_ST_DISTANCE_ATR, EXECUTION_PYRAMID_MARGIN_BUFFER,
+  EXECUTION_ABS_MAX_POSITIONS
+
+Adaptive reverse policy
+- Close opposite positions before opening new direction
+- Confirm gates: alignment, supertrend direction, regime, decision_votes, st distance
+- Env knobs: EXECUTION_ADAPTIVE_REVERSE, EXECUTION_REVERSE_MIN_VOTES,
+  EXECUTION_REVERSE_MAX_ST_DISTANCE_ATR
+
+================================================================================
+G) Operator Runbook (Safe — Phase 7)
+================================================================================
+
+1) Start API server
+   python api_server.py
+
+2) Verify endpoints
+   GET http://127.0.0.1:5000/api/health
+   GET http://127.0.0.1:5000/api/status
+   GET http://127.0.0.1:5000/api/signal_preview
+
+3) Start mentor (safe commissioning / DRY_RUN)
+   set DRY_RUN=1
+   python mentor_executor.py
+
+4) Start mentor (live)
+   set DRY_RUN=0
+   python mentor_executor.py
+
+5) Start risk guard
+   python risk_guard_hardstop.py
+
+6) Start watchdog (supervise all)
+   python watchdog_supervisor.py
+
+7) [Phase 7] Test kill-switch blocking
+   echo "TEST: Manual kill switch" > KILL_SWITCH.txt
+   python mentor_executor.py --once
+   # Expected: {"status": "SKIP", "reason": "kill_switch_active", ...}
+   del KILL_SWITCH.txt   (Windows) or   rm KILL_SWITCH.txt   (Linux/macOS)
+
+8) [Phase 7] Verify deterministic path (all three files must match)
+   python -c "
+   import mentor_executor, importlib, sys
+   sys.path.insert(0, '.')
+   watchdog = importlib.import_module('watchdog_supervisor')
+   risk_guard = importlib.import_module('risk_guard_hardstop')
+   print(f'mentor_executor: {mentor_executor.KILL_SWITCH_PATH}')
+   print(f'watchdog_supervisor: {watchdog.KILL_SWITCH_PATH}')
+   print(f'risk_guard_hardstop: {risk_guard.KILL_SWITCH_PATH}')
+   assert mentor_executor.KILL_SWITCH_PATH == watchdog.KILL_SWITCH_PATH == risk_guard.KILL_SWITCH_PATH
+   print('OK: All three files use the same KILL_SWITCH path')
+   "
+
+================================================================================
+H) KILL_SWITCH.txt — Fail-Safe Protocol
+================================================================================
+
+File location: {script_dir}/KILL_SWITCH.txt
+  where {script_dir} = directory containing each Python file (all in project root)
+
+Who WRITES it:
+  - risk_guard_hardstop.py: writes on daily DD / total DD / open positions breach
+  - Operator: manual write for emergency stop
+
+Who READS it:
+  - mentor_executor.py (Phase 7): synchronous check before every execution
+  - watchdog_supervisor.py: async check; forces DRY_RUN=1 on mentor restart
+
+Behavior matrix:
+  | File State       | mentor_executor response        | watchdog response           |
+  |------------------|---------------------------------|-----------------------------|
+  | File absent      | Continue (execute/AI/DRY_RUN)   | Normal restart              |
+  | File exists, OK  | SKIP (kill_switch_active)       | Restart with DRY_RUN=1      |
+  | File exists, ERR | SKIP (KILL_SWITCH_READ_ERROR)   | Restart with DRY_RUN=1      |
+
+File format: Plain text, first 500 chars used as kill_switch_reason
+  Example: "DAILY_DD_BREACH: -5.2% at 2026-03-13T05:00:00"
+
+To resume trading:
+  1. Investigate breach
+  2. Confirm breach is resolved
+  3. Delete KILL_SWITCH.txt
+  4. Restart mentor_executor (watchdog will restart without DRY_RUN=1)
+
+================================================================================
+I) Change Log (Consolidated)
+================================================================================
+
+2026-03-13 Phase 7 — Synchronous Kill-Switch + Deterministic Path
+  - mentor_executor.py v1.0.1 -> v1.0.2:
+    * Added _kill_switch_active() with fail-closed semantics
+    * Added synchronous check before self.mt5.execute(pkg)
+    * Uses PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+    * Logs event=kill_switch_block on block
+    * kill_switch_path included in mentor_start log and console output
+  - risk_guard_hardstop.py v1.1.0 -> v1.1.1:
+    * PROJECT_ROOT: os.getcwd() -> os.path.dirname(os.path.abspath(__file__))
+    * kill_switch_path added to initialized log event
+    * logger.info(f"kill_switch_path=...") added
+  - watchdog_supervisor.py v1.0.0 -> v1.0.1:
+    * PROJECT_ROOT: os.getcwd() -> os.path.dirname(os.path.abspath(__file__))
+    * kill_switch_path added to watchdog_start log event
+
+2026-03-10 Multi-TF decision + adaptive reverse + noise reduction
+  - API: multi-TF vote from M10/M15/M30/H1; decision_min_agree guard
+  - Mentor: decision_votes forwarded to AI confirm and execution package
+  - MT5: adaptive reverse (close opposite before opening new direction)
+  - Mentor intel: trend-change-only mode to reduce Telegram spam
+
+2026-03-10 Gate tightening + anti-chase tuning
+  - config.json: bos_break_atr_min 0.05->0.12, bb_width_atr_min 0.70->0.80
+  - mt5_executor: supertrend_distance_atr as hard gate for all positions
+  - config.json: ai_confirm.llm_model deepseek-chat -> deepseek-reasoner
+
+2026-03-09 Production wiring + pyramiding
+  - API normalize: enriched /api/signal_preview response
+  - AI confirm prompt: reduced false-deny
+  - Telegram routing: per-room token routing
+  - MT5: adaptive pyramiding policy
+
+================================================================================
+J) Historical/Archived Components
+================================================================================
+
+ไฟล์/โมดูลต่อไปนี้เคยอยู่ในเอกสารรุ่นก่อน แต่ปัจจุบันถูกลบ/ย้ายออกจาก root แล้ว:
+- market_schedule.py / example_market_schedule.py
+- intelligent_mentor_readonly.py / intelligent_dashboard.py
+- ai_llm_confirm_smoke_test.py
+- ai_bridge_v1.py / ai_mentor.py
+- filters/proximity_gate.py
+- archive_orphans.py / quarantine_cleanup.py
+
+แนวคิดสำคัญจากไฟล์กลุ่มนี้ถูกย้ายมาอยู่ใน:
+- mentor_executor.py (startup status + mentor intelligent summary)
+- py_quarantine_orphans.py (AST orphan quarantine)
+- config.json / mt5_executor.py (risk+execution hardening)
+
+================================================================================
+Z) Mermaid State Diagram (Supplement — Phase 7)
+================================================================================
+
+stateDiagram-v2
+  [*] --> Boot
+  Boot --> Load_Config
+  Load_Config --> API_Signal_Preview
+  API_Signal_Preview --> Engine_Generate
+  Engine_Generate --> MultiTF_Vote: default mode M10/M15/M30/H1
+  MultiTF_Vote --> Signal_HOLD: no consensus
+  MultiTF_Vote --> Signal_TRADE: consensus BUY/SELL
+  Signal_HOLD --> Mentor_Intel: intel_enabled && should_send
+  Mentor_Intel --> [*]
+  Signal_TRADE --> AI_Confirm
+  AI_Confirm --> Skip_AI_Denied: approved=false
+  Skip_AI_Denied --> [*]
+  AI_Confirm --> KillSwitch_Check: approved=true [Phase 7]
+  KillSwitch_Check --> Skip_KillSwitch: KILL_SWITCH.txt exists (fail-closed)
+  Skip_KillSwitch --> [*]
+  KillSwitch_Check --> DryRun_Check: KILL_SWITCH.txt absent
+  DryRun_Check --> DryRun_End: dry_run=true
+  DryRun_End --> [*]
+  DryRun_Check --> Exec_Guards: dry_run=false
+  Exec_Guards --> Skip_Spread: spread_check fail
+  Exec_Guards --> Skip_Cooldown: cooldown_active
+  Exec_Guards --> Skip_Pending: pending_order_exists_magic
+  Exec_Guards --> Reverse_Check: opposite position exists
+  Reverse_Check --> Skip_Opposite: reverse disabled or not confirmed
+  Reverse_Check --> Close_Opposite: reverse confirmed
+  Close_Opposite --> Exec_Guards
+  Exec_Guards --> Skip_PositionPolicy: anti-chase / pyramid / reverse policy blocks
+  Exec_Guards --> MT5_Order_Send: guards pass
+  MT5_Order_Send --> Post_SLTP_Enforce
+  Post_SLTP_Enforce --> Trade_Alert: trade telegram
+  Trade_Alert --> [*]
+
+  note right of KillSwitch_Check
+    Phase 7: Synchronous check
+    Uses __file__-based path
+    Fail-closed: read error = active
+  end note
+
+================================================================================
+END OF STATE DIAGRAM
+================================================================================
