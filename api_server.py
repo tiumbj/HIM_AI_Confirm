@@ -2,11 +2,21 @@
 # ชื่อโค้ด: HIM API Server (api_server.py)
 # ที่อยู่ไฟล์: c:\Data\Bot\HIM_AI_Confirm\api_server.py
 # คำสั่งรัน: python api_server.py
-# เวอร์ชัน: v4.1.0
+# เวอร์ชัน: v4.2.0
 # ============================================================
 #  api_server.py — Production-grade API Server for HIM
-#  Version: v4.1.0
+#  Version: v4.2.0
 #  Changelog:
+#   - v4.2.0 (2026-03-13): Phase 8.1 - Enforce AI LLM-only confirmation
+#       * Remove ALL local_policy execution approval paths (_local_confirm removed)
+#       * Add _local_precheck(): non-authoritative validation only, never returns approved=True
+#       * Add _llm_confirm_with_priority(): strict provider chain DeepSeek->OpenAI->Groq->Claude->Gemini
+#       * Add _llm_call_provider(): handles OpenAI-compatible, Claude, and Gemini API formats
+#       * Add _normalize_llm_out(): normalize LLM JSON output fields
+#       * Rewrite confirm(): LLM-only approval, fail-closed when all providers fail
+#       * All API keys from .env only: DEEPSEEK_API_KEY, OPENAI_API_KEY, GROQ_API_KEY,
+#         CLAUDE_API_KEY, GEMINI_API_KEY
+#       * Remove old _llm_confirm() single-provider method
 #   - v4.1.0 (2026-03-13):
 #       * Make AI confirm pipeline confirm-only: remove confirmed_plan from LLM prompt and API response
 #   - v4.0.1 (2026-03-13):
@@ -38,7 +48,7 @@ from urllib.request import Request, urlopen
 # ----------------------------
 # Constants
 # ----------------------------
-APP_VERSION = "v4.1.0"
+APP_VERSION = "v4.2.0"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 5000
 DEFAULT_CONFIG_PATH = "config.json"
@@ -482,13 +492,10 @@ class EngineAdapter:
 class AIConfirmer:
     """
     confirm-only policy:
-      - Can proxy to external AI confirm URL if configured.
-      - Otherwise uses local fail-closed rules:
-          approve only if:
-            decision in BUY/SELL
-            plan has positive sl/tp
-            rr >= min_rr (if available)
-            confidence >= min_conf (if available)
+      - LLM confirmation is REQUIRED for execution approval.
+      - Local precheck performs non-authoritative validation only (never approves execution).
+      - Provider priority: DeepSeek -> OpenAI -> Groq -> Claude -> Gemini
+      - If all providers fail, returns approved=False (fail-closed, no silent fallback).
     """
 
     def __init__(self, config_mgr: ConfigManager):
@@ -498,80 +505,312 @@ class AIConfirmer:
         cfg = self.config_mgr.get()
         ai_cfg = cfg.get("ai_confirm", {}) if isinstance(cfg.get("ai_confirm", {}), dict) else {}
 
-        pre = self._local_confirm(payload, ai_cfg)
-        if pre.get("approved") is not True:
-            return {**pre, "provider": "local_policy_precheck", "model": None}
+        # Non-authoritative precheck (validation metadata only, never approves execution)
+        pre = self._local_precheck(payload, ai_cfg)
+        if not pre["valid"]:
+            return {
+                "approved": False,
+                "reason": pre["reason"],
+                "confidence": None,
+                "provider": "validation_failed",
+                "model": "",
+            }
 
+        # LLM confirmation is REQUIRED
         use_llm = bool(ai_cfg.get("use_llm") is True) or (os.environ.get("AI_CONFIRM_USE_LLM", "0").strip() in ("1", "true", "TRUE", "yes", "YES"))
-        if use_llm:
-            ok_llm, llm_out = self._llm_confirm(payload, ai_cfg)
-            if ok_llm and isinstance(llm_out, dict):
-                out = self._sanitize_ai_response(llm_out)
-                out["provider"] = str(llm_out.get("provider") or llm_out.get("api_meta", {}).get("provider") or "llm")[:80]
-                out["model"] = str(llm_out.get("model") or llm_out.get("api_meta", {}).get("model") or "")[:80]
-                if isinstance(llm_out.get("bullets"), list):
-                    out["bullets"] = [str(x)[:140] for x in llm_out.get("bullets")[:3]]
-                return out
 
-        out = dict(pre)
-        if use_llm:
-            out = {**out, "provider": "local_policy_fallback", "model": None}
-            if out.get("approved") is True:
-                out["reason"] = "llm_unavailable_fallback"
-        else:
-            out = {**out, "provider": "local_policy", "model": None}
-        return out
+        if not use_llm:
+            return {
+                "approved": False,
+                "reason": "llm_required",
+                "confidence": None,
+                "provider": "none",
+                "model": "",
+            }
+
+        # Try provider priority chain: DeepSeek -> OpenAI -> Groq -> Claude -> Gemini
+        ok_llm, llm_out, provider_trace = self._llm_confirm_with_priority(payload, ai_cfg)
+
+        if ok_llm and isinstance(llm_out, dict):
+            out = self._sanitize_ai_response(llm_out)
+            out["provider"] = str(llm_out.get("provider", "unknown"))[:80]
+            out["model"] = str(llm_out.get("model", ""))[:80]
+            out["provider_trace"] = provider_trace
+            if isinstance(llm_out.get("bullets"), list):
+                out["bullets"] = [str(x)[:140] for x in llm_out.get("bullets")[:3]]
+            return out
+
+        # All providers failed - DENY (fail-closed)
+        return {
+            "approved": False,
+            "reason": "ai_llm_unavailable",
+            "confidence": None,
+            "provider": "none",
+            "model": "",
+            "provider_trace": provider_trace,
+        }
 
     @staticmethod
-    def _local_confirm(payload: Dict[str, Any], ai_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    def _local_precheck(payload: Dict[str, Any], ai_cfg: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        NON-AUTHORITATIVE validation only.
+        NEVER returns approved=True.
+        Returns: {"valid": bool, "reason": str}
+        """
         decision = _upper_str(payload.get("decision"))
         plan = payload.get("plan", {}) if isinstance(payload.get("plan", {}), dict) else {}
-        metrics = payload.get("metrics", {}) if isinstance(payload.get("metrics", {}), dict) else {}
         blocked_by = payload.get("blocked_by")
         if blocked_by is None:
             blocked_by = payload.get("blocked_list") or payload.get("blocked") or []
         if not isinstance(blocked_by, list):
             blocked_by = []
+
         if blocked_by:
-            return {"approved": False, "reason": "blocked_by_present", "confidence": None}
+            return {"valid": False, "reason": "blocked_by_present"}
 
         if decision not in ("BUY", "SELL"):
-            return {"approved": False, "reason": "decision_not_trade", "confidence": None}
+            return {"valid": False, "reason": "decision_not_trade"}
 
         entry = _safe_float(plan.get("entry"))
         sl = _safe_float(plan.get("sl"))
         tp = _safe_float(plan.get("tp"))
         if entry is None or sl is None or tp is None:
-            return {"approved": False, "reason": "plan_missing", "confidence": None}
+            return {"valid": False, "reason": "plan_missing"}
 
         if decision == "BUY" and not (sl < entry < tp):
-            return {"approved": False, "reason": "plan_invalid_buy", "confidence": None}
+            return {"valid": False, "reason": "plan_invalid_buy"}
         if decision == "SELL" and not (tp < entry < sl):
-            return {"approved": False, "reason": "plan_invalid_sell", "confidence": None}
+            return {"valid": False, "reason": "plan_invalid_sell"}
 
-        rr = _safe_float(metrics.get("rr"))
-        if rr is None:
-            risk = abs(entry - sl)
-            reward = abs(tp - entry)
-            rr = (reward / risk) if (risk and risk > 0) else None
+        return {"valid": True, "reason": "precheck_ok"}
 
-        min_rr = _safe_float(ai_cfg.get("min_rr"))
-        if min_rr is None:
-            min_rr = _safe_float(payload.get("min_rr"))
-        if min_rr is not None and rr is not None and rr < float(min_rr):
-            return {"approved": False, "reason": "rr_too_low", "confidence": None}
+    def _llm_confirm_with_priority(
+        self, payload: Dict[str, Any], ai_cfg: Dict[str, Any]
+    ) -> Tuple[bool, Dict[str, Any], list]:
+        """
+        Try AI providers in strict priority order: DeepSeek -> OpenAI -> Groq -> Claude -> Gemini.
+        Returns: (success, response_dict, provider_trace)
+        provider_trace = [{"provider": "deepseek", "status": "skipped", "reason": "no_api_key"}, ...]
+        All API keys are sourced from environment variables only.
+        """
+        providers = [
+            {
+                "name": "deepseek",
+                "url": "https://api.deepseek.com/v1/chat/completions",
+                "key_env": "DEEPSEEK_API_KEY",
+                "model": "deepseek-chat",
+                "format": "openai",
+            },
+            {
+                "name": "openai",
+                "url": "https://api.openai.com/v1/chat/completions",
+                "key_env": "OPENAI_API_KEY",
+                "model": "gpt-4",
+                "format": "openai",
+            },
+            {
+                "name": "groq",
+                "url": "https://api.groq.com/openai/v1/chat/completions",
+                "key_env": "GROQ_API_KEY",
+                "model": "mixtral-8x7b-32768",
+                "format": "openai",
+            },
+            {
+                "name": "claude",
+                "url": "https://api.anthropic.com/v1/messages",
+                "key_env": "CLAUDE_API_KEY",
+                "model": "claude-3-sonnet-20240229",
+                "format": "claude",
+            },
+            {
+                "name": "gemini",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+                "key_env": "GEMINI_API_KEY",
+                "model": "gemini-pro",
+                "format": "gemini",
+            },
+        ]
 
-        min_conf = _safe_float(ai_cfg.get("min_confidence"))
-        if min_conf is None:
-            return {"approved": True, "reason": "local_policy_ok", "confidence": None}
+        provider_trace: list = []
+        timeout_sec = float(ai_cfg.get("llm_timeout_sec") or ai_cfg.get("timeout_sec") or 8.0)
+        max_tokens = int(ai_cfg.get("llm_max_tokens") or 220)
+        temperature = float(ai_cfg.get("llm_temperature") or 0.1)
+        policy = {"min_rr": ai_cfg.get("min_rr")}
 
-        conf = _safe_float(payload.get("confidence"))
-        if conf is None:
-            conf = _safe_float(metrics.get("confidence"))
-        if conf is None or conf < float(min_conf):
-            return {"approved": False, "reason": "confidence_too_low", "confidence": conf}
+        for p in providers:
+            key = os.environ.get(p["key_env"], "").strip()
+            if not key:
+                provider_trace.append({"provider": p["name"], "status": "skipped", "reason": "no_api_key"})
+                continue
 
-        return {"approved": True, "reason": "local_policy_ok", "confidence": conf}
+            ok, response = self._llm_call_provider(
+                p, key, payload, policy, timeout_sec, max_tokens, temperature
+            )
+            if ok and isinstance(response, dict):
+                response["provider"] = p["name"]
+                response["model"] = p["model"]
+                provider_trace.append({"provider": p["name"], "status": "success", "model": p["model"]})
+                return True, response, provider_trace
+            else:
+                provider_trace.append({
+                    "provider": p["name"],
+                    "status": "failed",
+                    "reason": str(response)[:100] if not ok else "invalid_response",
+                })
+
+        return False, {}, provider_trace
+
+    def _llm_call_provider(
+        self,
+        provider: Dict[str, Any],
+        key: str,
+        payload: Dict[str, Any],
+        policy: Dict[str, Any],
+        timeout_sec: float,
+        max_tokens: int,
+        temperature: float,
+    ) -> Tuple[bool, Any]:
+        """
+        Call a single LLM provider. Handles OpenAI-compatible, Claude, and Gemini API formats.
+        Returns (success, parsed_response_dict_or_error_str).
+        """
+        fmt = provider.get("format", "openai")
+        url = provider["url"]
+        model = provider["model"]
+        user_text = self._build_llm_prompt(payload, policy)
+        system_text = "You are a strict risk manager. Return JSON only. No markdown."
+
+        try:
+            if fmt == "openai":
+                ok, raw = self._llm_http_chat_completions(
+                    url=url,
+                    api_key=key,
+                    model=model,
+                    system_text=system_text,
+                    user_text=user_text,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    timeout_sec=timeout_sec,
+                )
+                if not ok:
+                    return False, raw
+                okj, out = self._extract_llm_json(raw)
+                if not okj:
+                    return False, "llm_json_parse_failed"
+                return True, self._normalize_llm_out(out, model)
+
+            elif fmt == "claude":
+                req_payload = {
+                    "model": model,
+                    "max_tokens": max_tokens,
+                    "system": system_text,
+                    "messages": [{"role": "user", "content": user_text}],
+                }
+                data = json.dumps(req_payload, ensure_ascii=False).encode("utf-8")
+                req = Request(
+                    url=url,
+                    data=data,
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-api-key": key,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    method="POST",
+                )
+                with urlopen(req, timeout=timeout_sec) as resp:
+                    body = resp.read().decode("utf-8", errors="replace")
+                try:
+                    raw = json.loads(body)
+                except Exception:
+                    return False, "claude_json_body_parse_failed"
+                # Claude response: {"content": [{"type": "text", "text": "..."}]}
+                content_blocks = raw.get("content") if isinstance(raw, dict) else None
+                if isinstance(content_blocks, list) and content_blocks:
+                    text = content_blocks[0].get("text", "") if isinstance(content_blocks[0], dict) else ""
+                else:
+                    text = ""
+                okj, out = self._extract_llm_json(text)
+                if not okj:
+                    return False, "claude_llm_json_parse_failed"
+                return True, self._normalize_llm_out(out, model)
+
+            elif fmt == "gemini":
+                gemini_url = f"{url}?key={key}"
+                req_payload = {
+                    "contents": [{"parts": [{"text": f"{system_text}\n\n{user_text}"}]}],
+                    "generationConfig": {
+                        "temperature": temperature,
+                        "maxOutputTokens": max_tokens,
+                    },
+                }
+                data = json.dumps(req_payload, ensure_ascii=False).encode("utf-8")
+                req = Request(
+                    url=gemini_url,
+                    data=data,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urlopen(req, timeout=timeout_sec) as resp:
+                    body = resp.read().decode("utf-8", errors="replace")
+                try:
+                    raw = json.loads(body)
+                except Exception:
+                    return False, "gemini_json_body_parse_failed"
+                # Gemini response: {"candidates": [{"content": {"parts": [{"text": "..."}]}}]}
+                candidates = raw.get("candidates") if isinstance(raw, dict) else None
+                text = ""
+                if isinstance(candidates, list) and candidates:
+                    cand = candidates[0]
+                    if isinstance(cand, dict):
+                        content = cand.get("content", {})
+                        if isinstance(content, dict):
+                            parts = content.get("parts", [])
+                            if isinstance(parts, list) and parts:
+                                text = parts[0].get("text", "") if isinstance(parts[0], dict) else ""
+                okj, out = self._extract_llm_json(text)
+                if not okj:
+                    return False, "gemini_llm_json_parse_failed"
+                return True, self._normalize_llm_out(out, model)
+
+            else:
+                return False, f"unknown_provider_format_{fmt}"
+
+        except Exception as e:
+            return False, str(e)[:200]
+
+    @staticmethod
+    def _normalize_llm_out(out: Dict[str, Any], model: str) -> Dict[str, Any]:
+        """Normalize and clamp LLM JSON output fields."""
+        approved = out.get("approved")
+        decision = str(out.get("decision") or "").strip().upper()
+        if approved is None and decision:
+            out["approved"] = decision == "CONFIRM"
+
+        try:
+            c = float(out.get("confidence") or 0.0)
+            out["confidence"] = max(0.0, min(1.0, c))
+        except Exception:
+            out["confidence"] = 0.0
+
+        reason = out.get("reason")
+        out["reason"] = str(reason or "").strip()[:120]
+
+        bullets = out.get("bullets")
+        if isinstance(bullets, list):
+            cleaned = []
+            for b in bullets:
+                if not isinstance(b, str):
+                    continue
+                words = [w for w in b.strip().split() if w]
+                cleaned.append(" ".join(words[:8])[:140])
+                if len(cleaned) >= 3:
+                    break
+            out["bullets"] = cleaned
+        else:
+            out["bullets"] = []
+
+        out["model"] = model
+        return out
 
     @staticmethod
     def _sanitize_ai_response(raw: Any) -> Dict[str, Any]:
@@ -763,85 +1002,6 @@ class AIConfirmer:
                         pass
                 return False, {}
         return False, {}
-
-    def _llm_confirm(self, payload: Dict[str, Any], ai_cfg: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
-        provider = str(ai_cfg.get("provider") or os.environ.get("AI_PROVIDER") or "deepseek").strip().lower()
-        if provider not in ("deepseek", "openai", "compatible"):
-            provider = "deepseek"
-
-        api_url = str(ai_cfg.get("llm_api_url") or os.environ.get("AI_API_URL") or os.environ.get("DEEPSEEK_API_URL") or "https://api.deepseek.com/v1/chat/completions").strip()
-        model = str(ai_cfg.get("llm_model") or os.environ.get("AI_MODEL") or "deepseek-chat").strip()
-        key = os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY") or os.environ.get("AI_API_KEY") or ""
-        key = str(key).strip()
-        if not key or not api_url:
-            return False, {}
-
-        policy = {
-            "min_rr": ai_cfg.get("min_rr"),
-        }
-
-        user_text = self._build_llm_prompt(payload, policy)
-        system_text = "You are a strict risk manager. Return JSON only. No markdown."
-        timeout_sec = float(ai_cfg.get("llm_timeout_sec") or ai_cfg.get("timeout_sec") or 8.0)
-        max_tokens = int(ai_cfg.get("llm_max_tokens") or 220)
-        temperature = float(ai_cfg.get("llm_temperature") or 0.1)
-
-        ok, raw = self._llm_http_chat_completions(
-            url=api_url,
-            api_key=key,
-            model=model,
-            system_text=system_text,
-            user_text=user_text,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            timeout_sec=timeout_sec,
-        )
-        if not ok:
-            return False, {}
-
-        okj, out = self._extract_llm_json(raw)
-        if not okj:
-            return False, {}
-
-        approved = out.get("approved")
-        decision = str(out.get("decision") or "").strip().upper()
-        if approved is None and decision:
-            out["approved"] = decision == "CONFIRM"
-
-        if not isinstance(out.get("confidence"), (int, float)):
-            out["confidence"] = 0.0
-        try:
-            c = float(out.get("confidence"))
-            if c < 0.0:
-                c = 0.0
-            if c > 1.0:
-                c = 1.0
-            out["confidence"] = c
-        except Exception:
-            out["confidence"] = 0.0
-
-        reason = out.get("reason")
-        if not isinstance(reason, str):
-            reason = str(reason or "")
-        out["reason"] = reason.strip()[:120]
-
-        bullets = out.get("bullets")
-        if isinstance(bullets, list):
-            cleaned = []
-            for b in bullets:
-                if not isinstance(b, str):
-                    continue
-                words = [w for w in b.strip().split() if w]
-                cleaned.append(" ".join(words[:8])[:140])
-                if len(cleaned) >= 3:
-                    break
-            out["bullets"] = cleaned
-        else:
-            out["bullets"] = []
-
-        out["provider"] = provider
-        out["model"] = model
-        return True, out
 
     @staticmethod
     def _proxy_confirm(url: str, payload: Dict[str, Any], timeout_sec: float) -> Tuple[bool, Any]:
