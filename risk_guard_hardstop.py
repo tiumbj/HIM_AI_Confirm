@@ -6,10 +6,15 @@
 # ============================================================
 """
 risk_guard_hardstop.py — Production Risk Guard (MT5-based)
-Version: v1.1.0
+Version: v1.1.1
 Purpose:
   - Enforce real MT5-based constraints and write KILL_SWITCH.txt on breach (fail-closed)
   - Supervisor (watchdog_supervisor.py) forces mentor_executor DRY_RUN=1 when KILL_SWITCH exists
+
+Changelog:
+  - v1.1.1 (Phase 7):
+      * Use __file__-based PROJECT_ROOT for deterministic KILL_SWITCH path
+  - v1.1.0: Production MT5-based enforcement
 """
 
 from __future__ import annotations
@@ -29,9 +34,9 @@ try:
 except Exception:
     mt5 = None
 
-VERSION = "v1.1.0"
+VERSION = "v1.1.1"
 
-PROJECT_ROOT = os.getcwd()
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 HARDSTOP_LOG = os.path.join(LOG_DIR, "risk_guard.jsonl")
 RISK_GUARD_STATE_PATH = os.path.join(PROJECT_ROOT, ".risk_guard_state.json")
@@ -307,6 +312,7 @@ class RiskGuardHardstop:
         logger.info(f"max_total_dd_pct={self.limits.max_total_dd_pct}")
         logger.info(f"max_open_positions={self.limits.max_open_positions}")
         logger.info(f"max_total_volume={self.limits.max_total_volume}")
+        logger.info(f"kill_switch_path={KILL_SWITCH_PATH}")
 
         _log_event("initialized", {
             "config_path": self.config_path,
@@ -316,6 +322,7 @@ class RiskGuardHardstop:
             "max_total_dd_pct": self.limits.max_total_dd_pct,
             "max_open_positions": self.limits.max_open_positions,
             "max_total_volume": self.limits.max_total_volume,
+            "kill_switch_path": KILL_SWITCH_PATH,
         })
 
     def _signal_handler(self, signum, frame) -> None:
