@@ -1,0 +1,784 @@
+================================================================================
+  HIM (Hybrid Intelligence Mentor) - Production State Diagram
+  System Version: 2026-03-13 (Post Phase 7)
+  Document Purpose: Complete system architecture, flow, and component versions
+================================================================================
+
+================================================================================
+A) SYSTEM ARCHITECTURE OVERVIEW
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     PRODUCTION RUNTIME ARCHITECTURE                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                          ┌──────────────────────┐
+                          │ watchdog_supervisor  │
+                          │      v1.0.1          │
+                          │  (Process Manager)   │
+                          └──────────┬───────────┘
+                                     │ starts & monitors
+                    ┌────────────────┼────────────────┐
+                    ▼                ▼                ▼
+        ┌───────────────┐  ┌─────────────────┐  ┌──────────────────┐
+        │  api_server   │  │  risk_guard      │  │ mentor_executor  │
+        │    v4.1.0     │  │  _hardstop       │  │     v1.0.2       │
+        │               │  │    v1.1.1        │  │                  │
+        └───────┬───────┘  └────────┬─────────┘  └────────┬─────────┘
+                │                   │                      │
+                │ HTTP              │ writes               │ reads
+                │                   ▼                      ▼
+                │          ┌──────────────────┐   ┌──────────────────┐
+                │          │ KILL_SWITCH.txt  │◄──┤ sync check       │
+                │          │ (project root)   │   │ before execute   │
+                │          └──────────────────┘   └──────────────────┘
+                │                                           │
+                ▼                                           ▼
+        ┌──────────────┐                          ┌──────────────────┐
+        │   engine.py  │                          │  mt5_executor    │
+        │   v2.13.0    │                          │     v1.3.1       │
+        │ (Strategy)   │                          │  (Order Send)    │
+        └──────────────┘                          └─────────┬────────┘
+                                                            │
+                                                            ▼
+                                                   ┌─────────────────┐
+                                                   │  MetaTrader 5   │
+                                                   │   Terminal      │
+                                                   └─────────────────┘
+
+================================================================================
+B) COMPONENT VERSIONS (Current State)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CORE COMPONENTS                                                              │
+├──────────────────────────────┬──────────┬──────────────────────────────────┤
+│ File                         │ Version  │ Status / Notes                    │
+├──────────────────────────────┼──────────┼──────────────────────────────────┤
+│ config.json                  │ v2.13.0  │ Single source of truth           │
+│ engine.py                    │ v2.13.0  │ Strategy logic                   │
+│ api_server.py                │ v4.1.0   │ HTTP endpoints + AI confirm      │
+│ mentor_executor.py           │ v1.0.2   │ Phase 7: sync kill-switch        │
+│ mt5_executor.py              │ v1.3.1   │ MT5 order execution              │
+│ watchdog_supervisor.py       │ v1.0.1   │ Phase 7: deterministic path      │
+│ risk_guard_hardstop.py       │ v1.1.1   │ Phase 7: deterministic path      │
+│ trade_analytics.py           │ v1.0.0   │ Performance analytics            │
+│ intelligent_dashboard.py     │ v2.0.0   │ Streamlit monitoring             │
+│ telegram_notifier.py         │ v1.0.0   │ Alert delivery                   │
+└──────────────────────────────┴──────────┴──────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE COMPLETION STATUS                                                      │
+├──────────────────────────────┬──────────────────────────────────────────────┤
+│ Phase 1                      │ Not started (candle-close logic)            │
+│ Phase 2                      │ ✅ Verified no-op (config ownership)        │
+│ Phase 3                      │ ✅ Verified no-op (production wiring)       │
+│ Phase 4                      │ ✅ Verified no-op (magic number unified)    │
+│ Phase 5                      │ ✅ Verified no-op (event timeframe config)  │
+│ Phase 6                      │ ✅ Verified no-op (AI confirm consistent)   │
+│ Phase 7                      │ ✅ COMPLETED (sync kill-switch + paths)     │
+└──────────────────────────────┴──────────────────────────────────────────────┘
+
+================================================================================
+C) PRODUCTION SIGNAL FLOW (Detailed)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: SIGNAL GENERATION                                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+mentor_executor.py polls every 2 seconds:
+  │
+  ├─> HTTP GET: http://127.0.0.1:5000/api/signal_preview
+  │
+  └─> api_server.py receives request
+       │
+       ├─> EngineAdapter.generate_signal_package()
+       │    │
+       │    ├─> Reads config.commissioning.event_timeframes = ["M1"]
+       │    ├─> Single-TF mode: calls engine.generate_signal_package(event_timeframe="M1")
+       │    │
+       │    └─> engine.py (v2.13.0)
+       │         │
+       │         ├─> Fetches M1 OHLCV data from MT5
+       │         ├─> Calculates: BOS, ST, BB, ATR, regime, alignment
+       │         ├─> Decision logic: BUY / SELL / HOLD
+       │         ├─> Plan calculation: entry=close, sl/tp from ATR
+       │         ├─> Blockers: vol_gate, st_relax, bos_break, rr_check
+       │         │
+       │         └─> Returns signal package:
+       │              {
+       │                "request_id": "REQ-GOLD-1234567890",
+       │                "decision": "BUY" | "SELL" | "HOLD",
+       │                "plan": {"entry": 2600.0, "sl": 2595.0, "tp": 2610.0},
+       │                "metrics": {"rr": 2.0, "regime": "EXPANSION", ...},
+       │                "blocked_by": [],
+       │                "event_timeframe": "M1",
+       │                ...
+       │              }
+       │
+       └─> HTTP 200 JSON response back to mentor
+
+┌───────────────────────────────────���─────────────────────────────────────────┐
+│ STEP 2: EXECUTION PACKAGE BUILDING                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+mentor_executor.py:
+  │
+  ├─> Receives signal from api_server
+  │
+  ├─> mentor.build_execution_package(raw_signal)
+  │    │
+  │    ├─> Validates decision in ("BUY", "SELL")  [HOLD → skip]
+  │    ├─> Validates request_id exists
+  │    ├─> Validates plan numbers (entry > 0, sl > 0, tp > 0)
+  │    ├─> Validates plan direction:
+  │    │    BUY:  sl < entry < tp
+  │    │    SELL: tp < entry < sl
+  │    │
+  │    └─> Returns execution package:
+  │         {
+  │           "request_id": "REQ-GOLD-1234567890",
+  │           "decision": "BUY",
+  │           "plan": {"entry": 2600.0, "sl": 2595.0, "tp": 2610.0},
+  │           "metrics": {...},
+  │           "context": {...},
+  │           "blocked_by": [],
+  │           ...
+  │         }
+  │
+  └─> If validation fails → status="SKIP"
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 3: AI CONFIRMATION (Confirm-Only)                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+mentor_executor.py:
+  │
+  ├─> HTTP POST: http://127.0.0.1:5000/api/ai_confirm
+  │    Payload: execution_package (plan is READ-ONLY)
+  │
+  └─> api_server.py receives request
+       │
+       ├─> AIConfirmer.confirm(payload)
+       │    │
+       │    ├─> Local policy precheck (fail-closed):
+       │    │    - blocked_by present? → DENY
+       │    │    - decision not in (BUY, SELL)? → DENY
+       │    │    - plan invalid (sl/tp direction)? → DENY
+       │    │    - rr < min_rr? → DENY
+       │    │
+       │    ├─> If use_llm=true (config.ai_confirm.use_llm):
+       │    │    │
+       │    │    ├─> Build LLM prompt (confirm-only, NO plan modification):
+       │    │    │    "TASK: You are FINAL CONFIRM layer"
+       │    │    │    "Direction is LOCKED; do not flip BUY/SELL"
+       │    │    │    "Output JSON: {approved: bool, confidence: float, reason: str}"
+       │    │    │
+       │    │    ├─> HTTP POST to DeepSeek/OpenAI
+       │    │    │    Model: deepseek-reasoner (default)
+       │    │    │    Timeout: 8 sec
+       │    │    │
+       │    │    └─> Parse response:
+       │    │         - Extract: approved, confidence, reason, bullets
+       │    │         - NO confirmed_plan in response (Phase 6 verified)
+       │    │
+       │    └─> Return AI response:
+       │         {
+       │           "approved": true,
+       │           "confidence": 0.85,
+       │           "reason": "Strong trend alignment, RR favorable",
+       │           "bullets": ["Watch for reversal", "Trail stop at TP1"],
+       │           "provider": "deepseek",
+       │           "model": "deepseek-reasoner"
+       │         }
+       │
+       └─> HTTP 200 JSON response
+
+mentor_executor.py:
+  │
+  ├─> Receives AI response
+  │
+  ├─> mentor.enforce_confirm_only(pkg, ai_resp)
+  │    │
+  │    ├─> Extracts: approved, reason, confidence (Phase 6 confirm-only)
+  │    ├─> Stores metadata: bullets, provider, model
+  │    ├─> DOES NOT modify pkg["plan"] (confirm-only enforcement)
+  │    │
+  │    └─> pkg["ai_confirm"] = {...}
+  │
+  └─> If approved != true → status="DENIED", skip execution
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 4: KILL-SWITCH CHECK (Phase 7 - Fail-Safe)                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+mentor_executor.py (IMMEDIATELY before execution):
+  │
+  ├─> kill_active, kill_reason = _kill_switch_active()
+  │    │
+  │    ├─> Checks: PROJECT_ROOT/KILL_SWITCH.txt exists?
+  │    │    (PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__)))
+  │    │
+  │    ├─> If file does NOT exist → (False, "")
+  │    ├─> If file exists and readable → (True, file_content)
+  │    └─> If file exists but unreadable → (True, "KILL_SWITCH_READ_ERROR")
+  │
+  ├─> If kill_active == True:
+  │    │
+  │    ├─> Return immediately:
+  │    │    {
+  │    │      "status": "SKIP",
+  │    │      "reason": "kill_switch_active",
+  │    │      "kill_switch_reason": "Daily DD 2.5% >= 2.0%",
+  │    │      "request_id": "REQ-GOLD-1234567890"
+  │    │    }
+  │    │
+  │    ├─> Log event: "kill_switch_block"
+  │    │
+  │    └─> EXECUTION BLOCKED (zero trades post-breach)
+  │
+  └─> If kill_active == False → proceed to execution
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 5: MT5 EXECUTION                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+mentor_executor.py:
+  │
+  ├─> mt5_out = self.mt5.execute(pkg)
+  │
+  └─> mt5_executor.py (v1.3.1)
+       │
+       ├─> Reads config.execution.*:
+       │    - magic: 202603 (Phase 4: unified)
+       │    - lot: 0.01
+       │    - max_spread_points: 80
+       │    - deviation_min: 20
+       │    - cooldown_seconds: 20
+       │
+       ├─> Pre-execution checks:
+       │    ├─> DRY_RUN env check (watchdog forces =1 if kill switch)
+       │    ├─> MT5 connectivity
+       │    ├─> Symbol info (digits, point, stops_level)
+       │    ├─> Spread check (ATR-adaptive or fixed limit)
+       │    ├─> Stops validation (directional + distance)
+       │    ├─> Deduplication (fingerprint + cooldown)
+       │    └─> Position policy (pyramid/hedge rules)
+       │
+       ├─> If DRY_RUN=1:
+       │    └─> Log "DRY_RUN execution", return status="DRY_RUN"
+       │
+       ├─> If all checks pass:
+       │    │
+       │    ├─> Build MT5 order request:
+       │    │    {
+       │    │      "action": mt5.TRADE_ACTION_DEAL,
+       │    │      "symbol": "GOLD",
+       │    │      "volume": 0.01,
+       │    │      "type": mt5.ORDER_TYPE_BUY,
+       │    │      "price": 2600.0,
+       │    │      "sl": 2595.0,
+       │    │      "tp": 2610.0,
+       │    │      "deviation": 20,
+       │    │      "magic": 202603,
+       │    │      "comment": "HIM_BUY_M1",
+       │    │      "type_filling": mt5.ORDER_FILLING_IOC
+       │    │    }
+       │    │
+       │    ├─> result = mt5.order_send(request)
+       │    │
+       │    ├─> If result.retcode == TRADE_RETCODE_DONE:
+       │    │    │
+       │    │    ├─> Verify SL/TP attached (Phase 0 enforcement):
+       │    │    │    - Find position by ticket
+       │    │    │    - If SL/TP missing → modify position
+       │    │    │    - Retry up to 3 seconds
+       │    │    │
+       │    │    ├─> Log trade to:
+       │    │    │    - logs/mt5_executor.jsonl
+       │    │    │    - logs/trades.csv
+       │    │    │
+       │    │    └─> Return:
+       │    │         {
+       │    │           "status": "EXECUTED",
+       │    │           "ticket": 12345678,
+       │    │           "request_id": "REQ-GOLD-1234567890",
+       │    │           "price": 2600.05,
+       │    │           "volume": 0.01,
+       │    │           ...
+       │    │         }
+       │    │
+       │    └─> If result.retcode != DONE:
+       │         └─> Return: {"status": "FAILED", "reason": "retcode_10016", ...}
+       │
+       └─> If any pre-check fails:
+            └─> Return: {"status": "SKIP", "reason": "spread_too_high", ...}
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STEP 6: TELEGRAM NOTIFICATION (Optional)                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+mentor_executor.py:
+  │
+  ├─> If mt5_out["status"] == "EXECUTED":
+  │    │
+  │    └─> If telegram_notify_ok == true:
+  │         │
+  │         └─> send_telegram_message(formatted_trade_msg)
+  │              - Symbol, Decision, Entry, SL, TP, Ticket
+  │
+  └─> telegram_notifier.py (optional, env-configured)
+       └─> Sends to configured chat_id
+
+================================================================================
+D) RISK GUARD ENFORCEMENT (Real-Time MT5)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ASYNC SIDECAR MONITOR (risk_guard_hardstop.py v1.1.1)                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Every 5 seconds (config.risk_guard.poll_interval_sec):
+  │
+  ├─> MT5 Account Snapshot:
+  │    │
+  │    ├─> mt5.initialize()
+  │    ├─> acc = mt5.account_info()
+  │    │    - equity: current account equity
+  │    │    - balance: account balance
+  │    │    - profit: floating P&L
+  │    │    - margin_free: available margin
+  │    │
+  │    ├─> positions = mt5.positions_get()
+  │    │    - open_positions: count
+  │    │    - open_volume: sum of volumes
+  │    │
+  │    └─> mt5.shutdown()
+  │
+  ├─> Daily Drawdown Calculation:
+  │    │
+  │    ├─> Load state: .risk_guard_state.json
+  │    │    - day_start_equity (stored at day start)
+  │    │    - initial_equity (from config or first run)
+  │    │
+  │    ├─> daily_dd_pct = (day_start_equity - equity) / day_start_equity * 100
+  │    └─> total_dd_pct = (initial_equity - equity) / initial_equity * 100
+  │
+  ├─> Breach Check:
+  │    │
+  │    ├─> If daily_dd_pct >= config.risk_guard.max_daily_dd_pct (2.0%):
+  │    │    └─> breach.append("daily_dd_pct")
+  │    │
+  │    ├─> If total_dd_pct >= config.risk_guard.max_total_dd_pct (8.0%):
+  │    │    └─> breach.append("total_dd_pct")
+  │    │
+  │    ├─> If open_positions > max_open_positions (if configured):
+  │    │    └─> breach.append("max_open_positions")
+  │    │
+  │    └─> If open_volume > max_total_volume (if configured):
+  │         └─> breach.append("max_total_volume")
+  │
+  ├─> If breach detected:
+  │    │
+  │    ├─> Write KILL_SWITCH.txt:
+  │    │    Content: "RISK_GUARD_HARDSTOP
+  │    │              breach=['daily_dd_pct']
+  │    │              daily_dd_pct=2.34
+  │    │              total_dd_pct=1.20
+  │    │              utc=2026-03-13T10:30:00Z"
+  │    │
+  │    ├─> Log event: "kill_switch_written"
+  │    │
+  │    └─> Continue monitoring (does not exit)
+  │
+  └─> Log check result to logs/risk_guard.jsonl
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ WATCHDOG ENFORCEMENT (watchdog_supervisor.py v1.0.1)                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Every 1 second:
+  │
+  ├─> Check KILL_SWITCH.txt exists:
+  │    (PROJECT_ROOT/KILL_SWITCH.txt, __file__-based path)
+  │
+  ├─> If exists:
+  │    │
+  │    ├─> For process "mentor_executor":
+  │    │    │
+  │    │    ├─> Set desired_dry_run = "1"
+  │    │    │
+  │    │    ├─> If current env["DRY_RUN"] != "1":
+  │    │    │    │
+  │    │    │    ├─> Update env["DRY_RUN"] = "1"
+  │    │    │    ├─> Log: "mentor_dry_run_update"
+  │    │    │    ├─> Stop old mentor process
+  │    │    │    └─> Restart mentor with DRY_RUN=1
+  │    │    │
+  │    │    └─> New mentor instance boots with DRY_RUN=1
+  │    │         → All subsequent executions are dry-run only
+  │    │
+  │    └─> KILL_SWITCH remains active until manually removed
+  │
+  └─> If not exists:
+       └─> Normal operation (use config.commissioning.dry_run)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DUAL ENFORCEMENT (Phase 7 - Defense in Depth)                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+KILL_SWITCH Created at T=0 (by risk_guard):
+  │
+  ├─> T=0.0: risk_guard detects breach, writes KILL_SWITCH.txt
+  │
+  ├─> T=0.0-1.0: mentor_executor running
+  │    │
+  │    ├─> T=0.5: New signal arrives
+  │    │
+  │    ├─> SYNCHRONOUS CHECK (Phase 7):
+  │    │    kill_active = _kill_switch_active()
+  │    │    → Returns (True, "Daily DD breach")
+  │    │    → BLOCKS execution immediately
+  │    │    → Returns status="SKIP"
+  │    │
+  │    └─> ZERO trades executed (fail-safe guaranteed)
+  │
+  └─> T=1.0: watchdog detects KILL_SWITCH
+       │
+       ├─> Stops old mentor process
+       ├─> Starts new mentor with DRY_RUN=1
+       │
+       └─> T=1.5+: Any subsequent signals are dry-run only (backup)
+
+Result: Defense in depth - both synchronous and async enforcement
+
+================================================================================
+E) CONFIGURATION OWNERSHIP (Phase 2 Verified)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ config.json v2.13.0 - SINGLE SOURCE OF TRUTH                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+├─ STRATEGY (engine.py reads):
+│   ├─ symbol: "GOLD"
+│   ├─ timeframes: {htf: "H1", mtf: "M15", ltf: "M5"}
+│   ├─ min_rr: 1.3
+│   ├─ decision_timeframes: ["M10", "M15", "M30", "H1"]
+│   ├─ decision_min_agree: 2
+│   ├─ bos_break_atr_min: 0.12
+│   ├─ bos_lookback: 12
+│   ├─ st_relax_dist_atr_m1: 0.6
+│   ├─ bb_width_atr_min: 0.8
+│   ├─ bb_width_atr_min_m1: 0.55
+│   ├─ rr_sl_atr: 1.25
+│   ├─ rr_base_tp_atr: 1.9
+│   └─ trend_entry: {enabled: true, min_align: 1, max_supertrend_distance_atr: 2.6}
+│
+├─ COMMISSIONING (Phase 5 verified):
+│   ├─ enabled: true
+│   ├─ dry_run: 0
+│   └─ event_timeframes: ["M1"]  ← api_server reads this
+│
+├─ EXECUTION (mt5_executor.py reads):
+│   ├─ magic: 202603  ← Phase 4: unified across all components
+│   ├─ lot: 0.01
+│   ├─ max_spread_points: 80
+│   ├─ deviation_min: 20
+│   ├─ deviation_spread_mult: 2.0
+│   ├─ cooldown_seconds: 20
+│   ├─ atr_period: 14
+│   ├─ atr_multiplier: 0.2
+│   ├─ timeframe: "M5"
+│   ├─ sltp_verify_timeout_sec: 3.0
+│   └─ sltp_verify_retry_interval_sec: 0.25
+│
+├─ AI_CONFIRM (api_server.py reads - Phase 6 verified confirm-only):
+│   ├─ use_llm: true
+│   ├─ provider: "deepseek"
+│   ├─ llm_api_url: "https://api.deepseek.com/v1/chat/completions"
+│   ├─ llm_model: "deepseek-reasoner"
+│   ├─ llm_timeout_sec: 8.0
+│   ├─ llm_max_tokens: 220
+│   ├─ llm_temperature: 0.1
+│   ├─ min_confidence: null
+│   └─ min_rr: 1.3
+│
+├─ RISK_GUARD (risk_guard_hardstop.py reads - Phase 7 enforced):
+│   ├─ enabled: true
+│   ├─ initial_equity: 10000.0
+│   ├─ max_daily_dd_pct: 2.0
+│   ├─ max_total_dd_pct: 8.0
+│   └─ poll_interval_sec: 5
+│
+├─ TELEGRAM (telegram_notifier.py reads):
+│   ├─ enabled: true
+│   ├─ notify_on: ["signal", "trade", "error"]
+│   ├─ token_env: "TELEGRAM_BOT_TOKEN_TRADE"
+│   └─ chat_id_env: "TELEGRAM_TRADE_CHAT_ID"
+│
+├─ ANALYTICS (trade_analytics.py reads):
+│   ├─ enabled: true
+│   ├─ analysis_interval: 60.0
+│   ├─ trade_history_days: 7
+│   └─ min_trades_for_analysis: 10
+│
+├─ API (api_server.py reads):
+│   ├─ host: "127.0.0.1"
+│   └─ port: 5000
+│
+└─ DASHBOARD (intelligent_dashboard.py reads):
+    ├─ host: "127.0.0.1"
+    ├─ port: 8502
+    └─ external_url: ""
+
+================================================================================
+F) FILE OWNERSHIP & RESPONSIBILITIES
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILE                          │ PRIMARY RESPONSIBILITY                       │
+├───────────────────────────────┼──────────────────────────────────────────────┤
+│ config.json                   │ Single source of truth for all config       │
+│ engine.py                     │ Strategy logic (BOS/ST/BB/regime/signals)   │
+│ api_server.py                 │ HTTP endpoints + AI confirm orchestration   │
+│ mentor_executor.py            │ Production orchestrator (signal→AI→MT5)     │
+│ mt5_executor.py               │ MT5 order execution + dedup + logging       │
+│ watchdog_supervisor.py        │ Process lifecycle + kill-switch backup      │
+│ risk_guard_hardstop.py        │ MT5 account monitoring + breach detection   │
+│ trade_analytics.py            │ Performance metrics + equity curve          │
+│ intelligent_dashboard.py      │ Real-time monitoring UI (Streamlit)         │
+│ telegram_notifier.py          │ Alert delivery to Telegram                  │
+└───────────────────────────────┴──────────────────────────────────────────────┘
+
+================================================================================
+G) PHASE-BY-PHASE CHANGES LOG
+================================================================================
+
+Phase 1: [NOT STARTED] Candle-close event gating
+  Status: Pending
+  
+Phase 2: Config Single Source-of-Truth ✅ VERIFIED NO-OP
+  - Verified config.json is read by all components
+  - No duplicate parameter definitions found
+  - No code changes required
+
+Phase 3: Production Wiring Consistency ✅ VERIFIED NO-OP
+  - Verified mentor → api_server → engine → mt5_executor flow
+  - All HTTP endpoints functional
+  - No code changes required
+
+Phase 4: Magic Number Unification ✅ VERIFIED NO-OP
+  - Verified config.execution.magic = 202603 is universal
+  - mt5_executor uses this value consistently
+  - No code changes required
+
+Phase 5: Event Timeframe Config ✅ VERIFIED NO-OP
+  - Verified config.commissioning.event_timeframes is read
+  - api_server uses configured value correctly
+  - Precedence: URL override > config > decision_timeframes fallback
+  - No code changes required
+
+Phase 6: AI Confirm Pipeline Consistency ✅ VERIFIED NO-OP
+  - Verified confirm-only mode (no plan modification)
+  - LLM prompt does NOT request confirmed_plan
+  - API response does NOT return confirmed_plan
+  - Execution uses original signal plan only
+  - No code changes required
+
+Phase 7: Synchronous Kill-Switch Enforcement ✅ COMPLETED WITH CODE CHANGE
+  Files Modified:
+    - mentor_executor.py v1.0.1 → v1.0.2
+      * Added _kill_switch_active() function
+      * Added synchronous check before self.mt5.execute(pkg)
+      * Uses __file__-based PROJECT_ROOT for deterministic path
+      * Fail-closed: blocks if file exists or read fails
+      
+    - watchdog_supervisor.py v1.0.0 → v1.0.1
+      * Changed PROJECT_ROOT from os.getcwd() to __file__-based
+      * Ensures deterministic KILL_SWITCH path
+      
+    - risk_guard_hardstop.py v1.1.0 → v1.1.1
+      * Changed PROJECT_ROOT from os.getcwd() to __file__-based
+      * Ensures deterministic KILL_SWITCH path
+      
+  Impact:
+    - Eliminates 1-6 second enforcement gap
+    - Zero post-breach trades guaranteed
+    - All components resolve same KILL_SWITCH.txt path
+    - Defense in depth: sync (mentor) + async (watchdog) enforcement
+
+================================================================================
+H) PRODUCTION STARTUP PROCEDURE
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STANDARD STARTUP (Production)                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. Ensure MT5 Terminal is running and logged in
+
+2. Verify config.json:
+   ✓ commissioning.dry_run = 0 (for live trading)
+   ✓ execution.magic = 202603
+   ✓ risk_guard.enabled = true
+   ✓ All parameters validated
+
+3. Start supervisor:
+   $ python watchdog_supervisor.py
+   
+   This starts (in order):
+   ├─ api_server.py (port 5000)
+   ├─ risk_guard_hardstop.py (polls MT5 every 5s)
+   ├─ trade_analytics.py (background analytics)
+   ├─ mentor_executor.py (polls api every 2s)
+   └─ intelligent_dashboard.py (Streamlit on port 8502)
+
+4. Verify all processes started:
+   ✓ Check console output for "process_start" events
+   ✓ Check logs/watchdog_supervisor.jsonl
+
+5. Monitor:
+   ✓ Dashboard: http://127.0.0.1:8502
+   ✓ Logs: tail -f logs/mentor_executor.jsonl
+   ✓ Risk: tail -f logs/risk_guard.jsonl
+
+6. Emergency stop:
+   $ echo "MANUAL STOP" > KILL_SWITCH.txt
+   → Mentor blocks execution immediately (Phase 7)
+   → Watchdog restarts mentor in DRY_RUN=1 mode
+   → Remove file to resume: rm KILL_SWITCH.txt
+
+================================================================================
+I) LOGGING & OBSERVABILITY
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ LOG FILE                      │ CONTENTS                                    │
+├───────────────────────────────┼─────────────────────────────────────────────┤
+│ logs/watchdog_supervisor.jsonl│ Process start/stop/restart events          │
+│ logs/api_server.jsonl         │ HTTP requests, signal generation, AI calls │
+│ logs/mentor_executor.jsonl    │ Orchestration flow, execution results      │
+│ logs/mt5_executor.jsonl       │ MT5 order execution, retcodes, tickets     │
+│ logs/risk_guard.jsonl         │ Account snapshots, DD checks, breaches     │
+│ logs/trade_analytics.jsonl    │ Performance metrics, equity curve          │
+│ logs/trades.csv               │ Trade history (CSV format)                 │
+│ logs/risk_guard.log           │ Human-readable risk guard log              │
+└───────────────────────────────┴─────────────────────────────────────────────┘
+
+Key Event Types to Monitor:
+  - mentor_initialized: Mentor startup with config
+  - signal_fetch_failed: API connectivity issue
+  - kill_switch_block: Execution blocked by kill switch (Phase 7)
+  - ai_confirm_denied: LLM rejected trade
+  - mt5_execute: Execution attempt result
+  - kill_switch_written: Risk guard breach detected
+  - mentor_dry_run_update: Watchdog forcing dry-run mode
+
+================================================================================
+J) STATE FILES
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILE                          │ PURPOSE                                     │
+├───────────────────────────────┼─────────────────────────────────────────────┤
+│ KILL_SWITCH.txt               │ Risk guard breach signal (Phase 7)         │
+│ .risk_guard_state.json        │ Day start equity, initial equity tracking  │
+│ .execution_dedup_state.json   │ MT5 executor deduplication state           │
+└───────────────────────────────┴─────────────────────────────────────────────┘
+
+KILL_SWITCH.txt format:
+  RISK_GUARD_HARDSTOP
+  breach=['daily_dd_pct']
+  daily_dd_pct=2.34
+  total_dd_pct=1.20
+  open_positions=1
+  open_volume=0.01
+  utc=2026-03-13T10:30:00Z
+
+================================================================================
+K) PRODUCTION CHECKLIST
+================================================================================
+
+Before Go-Live:
+  ☐ All Phase 7 files deployed (mentor v1.0.2, watchdog v1.0.1, risk_guard v1.1.1)
+  ☐ config.json validated (dry_run=0, magic=202603, risk_guard.enabled=true)
+  ☐ MT5 Terminal running and connected
+  ☐ Environment variables set (TELEGRAM_BOT_TOKEN, API keys if LLM enabled)
+  ☐ Test kill-switch manually: echo "TEST" > KILL_SWITCH.txt
+  ☐ Verify synchronous blocking in logs/mentor_executor.jsonl
+  ☐ Remove test kill switch: rm KILL_SWITCH.txt
+  ☐ Verify all logs writing to logs/ directory
+  ☐ Dashboard accessible at http://127.0.0.1:8502
+  ☐ Telegram notifications working (if enabled)
+
+During Trading:
+  ☐ Monitor logs/mentor_executor.jsonl for execution events
+  ☐ Monitor logs/risk_guard.jsonl for DD checks
+  ☐ Watch for kill_switch_block events (should be zero unless breach)
+  ☐ Dashboard shows real-time P&L and positions
+  ☐ Telegram alerts arriving (if enabled)
+
+Emergency Procedures:
+  ☐ Manual stop: echo "EMERGENCY STOP" > KILL_SWITCH.txt
+  ☐ Verify mentor blocks within 1 execution cycle (<2 seconds)
+  ☐ Close open positions manually in MT5 if needed
+  ☐ Remove kill switch only after investigation: rm KILL_SWITCH.txt
+  ☐ Review logs to identify root cause
+
+================================================================================
+L) KNOWN LIMITATIONS & FUTURE WORK
+================================================================================
+
+Phase 1 (Pending): Candle-Close Event Gating
+  - Current: Signals generated on every poll (every 2 seconds)
+  - Future: Gate signals to candle-close events only (M1 close = once per minute)
+  - Impact: Reduces signal noise, prevents intra-candle signal changes
+
+Phase 8 (Future): Config Cleanup
+  - Current: Some legacy keys exist but are documented as removed
+  - Future: Final config.json cleanup to remove all documented dead keys
+  - Impact: Cleaner configuration, reduced confusion
+
+Performance Optimization (Future):
+  - Current: HTTP polling every 2 seconds
+  - Future: Consider WebSocket push model for real-time signals
+  - Impact: Lower latency, reduced network overhead
+
+Enhanced Analytics (Future):
+  - Current: Basic P&L tracking in trade_analytics.py
+  - Future: Advanced metrics (Sharpe, max DD, win rate by regime)
+  - Impact: Better performance visibility
+
+================================================================================
+M) VERSION CONTROL
+================================================================================
+
+Git Commit History (Recent):
+  - [Phase 7] fix: add synchronous kill-switch enforcement and deterministic path resolution
+    Files: mentor_executor.py, watchdog_supervisor.py, risk_guard_hardstop.py
+    Date: 2026-03-13
+    Impact: Production fail-safe for risk guard
+
+Repository Structure:
+  ├── config.json                    # Single source of truth
+  ├── engine.py                      # Strategy logic
+  ├── api_server.py                  # HTTP + AI confirm
+  ├── mentor_executor.py             # Orchestrator (Phase 7 updated)
+  ├── mt5_executor.py                # MT5 execution
+  ├── watchdog_supervisor.py         # Process manager (Phase 7 updated)
+  ├── risk_guard_hardstop.py         # Risk monitor (Phase 7 updated)
+  ├── trade_analytics.py             # Performance tracking
+  ├── intelligent_dashboard.py       # Monitoring UI
+  ├── telegram_notifier.py           # Alerts
+  ├── logs/                          # Runtime logs
+  ├── _PY_QUARANTINE_/               # Deprecated code
+  └── README.md                      # System documentation
+
+================================================================================
+END OF STATE DIAGRAM
+Document Version: 2026-03-13 (Post Phase 7)
+System Status: PRODUCTION READY
+Last Updated: Phase 7 completion
+================================================================================

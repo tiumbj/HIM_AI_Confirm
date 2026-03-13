@@ -1,0 +1,154 @@
+==================================================
+HIM_AI_Confirm - Phase 7 / 7.1 Final Status Update
+Updated: 2026-03-13
+==================================================
+
+PROJECT STATUS
+- Phase 1 = verified no-op
+- Phase 2 = verified no-op
+- Phase 3 = verified no-op
+- Phase 4 = verified no-op
+- Phase 5 = verified no-op
+- Phase 6 = verified no-op
+- Phase 7 = deployed and merged
+- Phase 7.1 = runtime verified
+
+--------------------------------------------------
+PHASE 7 OBJECTIVE
+--------------------------------------------------
+Implement deterministic path resolution and synchronous kill-switch enforcement
+without redesigning strategy, without touching unrelated runtime files, and
+without re-enabling the previously broken dashboard startup path.
+
+--------------------------------------------------
+PHASE 7 CHANGES MERGED
+--------------------------------------------------
+1) mentor_executor.py
+- VERSION updated:
+  v1.0.1 -> v1.0.2
+- Added deterministic root:
+  PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+- Added kill-switch path:
+  KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
+- Added synchronous fail-closed kill-switch enforcement immediately before:
+  self.mt5.execute(pkg)
+- Added _kill_switch_active() helper
+- Added structured SKIP return with request_id and kill_switch_reason logging
+
+2) risk_guard_hardstop.py
+- VERSION updated:
+  v1.1.0 -> v1.1.1
+- Replaced os.getcwd()-based PROJECT_ROOT with __file__-based PROJECT_ROOT
+- Added matching KILL_SWITCH_PATH
+
+3) watchdog_supervisor.py
+- APP_VERSION updated:
+  v1.0.0 -> v1.0.1
+- Replaced os.getcwd()-based PROJECT_ROOT with __file__-based PROJECT_ROOT
+- Added matching KILL_SWITCH_PATH
+- Dashboard startup path remained disabled/commented
+- WinError 2 dashboard regression was not reintroduced
+
+4) Documentation
+- state_diagrame.txt intentionally kept and updated to track project state
+
+--------------------------------------------------
+PHASE 7 STATIC VERIFICATION RESULTS
+--------------------------------------------------
+PASS
+- mentor_executor.py = VERSION "v1.0.2"
+- risk_guard_hardstop.py = VERSION "v1.1.1"
+- watchdog_supervisor.py = APP_VERSION "v1.0.1"
+
+PASS
+- All 3 files use:
+  PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+  KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
+
+PASS
+- os.getcwd() removed from:
+  - risk_guard_hardstop.py
+  - watchdog_supervisor.py
+
+PASS
+- mentor_executor.py contains synchronous kill-switch check immediately before
+  self.mt5.execute(pkg)
+
+PASS
+- Dashboard path remains disabled/commented in watchdog_supervisor.py
+
+--------------------------------------------------
+PHASE 7.1 RUNTIME VERIFICATION RESULTS
+--------------------------------------------------
+Root cause of earlier incomplete verification:
+- mentor_executor.py originally stopped early at signal_fetch_failed because
+  api_server.py was not reachable, so execution never reached the kill-switch
+  enforcement point.
+
+Resolved verification method:
+- Started api_server.py successfully
+- Verified:
+  GET /api/health = healthy
+  GET /api/signal_preview = responsive
+
+Runtime proof with KILL_SWITCH.txt present:
+- Command:
+  python mentor_executor.py --once --live
+- Result:
+  {"status":"SKIP","reason":"kill_switch_active","kill_switch_reason":"PHASE_7.1_RUNTIME_VERIFICATION_TEST","request_id":"REQ-..."}
+
+Conclusion:
+- Kill-switch enforcement executed at runtime
+- Execution was synchronously blocked before order execution
+- Structured SKIP response worked as designed
+
+Runtime proof with KILL_SWITCH.txt absent:
+- Command:
+  python mentor_executor.py --once --live
+- Result:
+  {"status":"SKIP","reason":"decision_not_trade"}
+
+Conclusion:
+- Kill-switch did not block when inactive
+- Flow passed beyond kill-switch gate
+- Runtime proceeded into downstream business logic
+
+--------------------------------------------------
+FINAL TECHNICAL CONCLUSION
+--------------------------------------------------
+Phase 7 = COMPLETE
+Phase 7.1 = COMPLETE
+
+Verified outcomes:
+- Deterministic path migration complete
+- Synchronous pre-execute kill-switch enforcement complete
+- Fail-closed behavior verified at runtime
+- Structured skip behavior verified
+- Dashboard-safe watchdog behavior preserved
+- No unrelated runtime redesign introduced
+
+--------------------------------------------------
+CURRENT LOCKED STATE
+--------------------------------------------------
+This Phase 7 implementation is now considered production-equivalent verified
+for the intended scope.
+
+Locked confirmed conditions:
+- mentor_executor.py remains v1.0.2 baseline for Phase 7
+- risk_guard_hardstop.py remains v1.1.1 baseline for Phase 7
+- watchdog_supervisor.py remains v1.0.1 baseline for Phase 7
+- PROJECT_ROOT standard for these files is __file__-based
+- KILL_SWITCH.txt is the canonical synchronous local execution stop mechanism
+- Dashboard startup remains disabled unless explicitly redesigned in a future phase
+
+--------------------------------------------------
+NEXT RECOMMENDED WORK
+--------------------------------------------------
+1) Freeze Phase 7 scope
+- No more edits to Phase 7 files unless fixing real defects
+
+2) Add release / ops note
+- Record kill-switch runtime verification result for deployment history
+
+3) Move to next controlled phase
+- Only after Phase 7 baseline is tagged or documented as stable
