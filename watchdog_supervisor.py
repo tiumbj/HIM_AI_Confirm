@@ -209,14 +209,14 @@ def main() -> int:
                 "DRY_RUN": default_dry_run,
             }),
         ),
-        ManagedProc(
-            name="dashboard",
-            cmd=["streamlit", "run", "intelligent_dashboard.py", "--server.port", str(dash_port), "--server.address", dash_host],
-            cwd=PROJECT_ROOT,
-            env=_make_env({
-                "HIM_API_BASE": api_base,
-            }),
-        ),
+       # ManagedProc(
+       #    name="dashboard",
+    #       cmd=["streamlit", "run", "intelligent_dashboard.py", "--server.port", str(dash_port), "--server.address", dash_host],
+         #  cwd=PROJECT_ROOT,
+    #     env=_make_env({
+        #        "HIM_API_BASE": api_base,
+        #    }),
+        #),
     ]
 
     running = True
