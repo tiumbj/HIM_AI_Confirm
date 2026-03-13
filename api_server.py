@@ -1004,7 +1004,6 @@ def api_health():
 
 @app.route("/api/status", methods=["GET"])
 def api_status():
-    cfg = config_mgr.get()
     # Try quick engine callable detection without generating signal
     engine_ok = True
     engine_sig = ""

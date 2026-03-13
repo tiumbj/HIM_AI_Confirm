@@ -4,7 +4,6 @@ Purpose: Verify synchronous kill-switch enforcement without strategy changes
 Scope: Tests _kill_switch_active() and mentor run_once() kill-switch behavior only
 """
 
-import os
 import sys
 import pytest
 from pathlib import Path
@@ -21,8 +20,6 @@ sys.modules.setdefault("mt5_executor", _mock_mt5_mod)
 
 from mentor_executor import (  # noqa: E402
     _kill_switch_active,
-    MentorExecutor,
-    KILL_SWITCH_PATH,
 )
 
 
