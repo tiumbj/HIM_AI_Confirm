@@ -129,5 +129,24 @@
     "analysis_interval": 60.0,
     "trade_history_days": 7,
     "min_trades_for_analysis": 10
+  },
+  "him_v3": {
+    "_comment": "HIM v3 MTF Cascade Exit System — ห้ามแก้โดยไม่ผ่าน plan",
+    "candle_trigger": {
+      "enabled": false,
+      "timeframe": "M1"
+    },
+    "cascade_exit": {
+      "enabled": false
+    },
+    "fast_ai_confirm": {
+      "enabled": false,
+      "fast_approve_min_align": 3,
+      "fast_approve_min_rr": 1.5,
+      "fast_reject_max_rr": 1.2,
+      "fast_reject_on_blocked": true,
+      "fast_reject_on_invalid_decision": true,
+      "uncertain_min_rr": 1.2
+    }
   }
 }
