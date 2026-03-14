@@ -2,13 +2,21 @@
 # ชื่อโค้ด: HIM MT5 Executor (mt5_executor.py)
 # ที่อยู่ไฟล์: c:\Data\Bot\HIM_AI_Confirm\mt5_executor.py
 # คำสั่งรัน: python mt5_executor.py
-# เวอร์ชัน: v1.4.0
+# เวอร์ชัน: v1.4.1
 # ============================================================
 """
 mt5_executor.py
-Version: v1.4.0
+Version: v1.4.1
 Purpose: MT5 Execution Guard + AI Final Confirm Gate + Request Dedup + Execution Logging
          (Production Safe Execution for HIM)
+
+========================================================
+CHANGELOG (v1.4.1)
+========================================================
+- ADD: Phase 3.1 HIM v3 config loader (_load_him_v3_cfg)
+- ADD: Phase 3.1 MTF Cascade Exit registration after enforce_sltp_after_send()
+- KEEP: Existing spread/stops/cooldown/order_send behavior unchanged
+- FAIL-SAFE: Cascade registration is wrapped in try/except and never affects order execution
 
 ========================================================
 CHANGELOG (v1.4.0)
@@ -51,7 +59,7 @@ from typing import Any, Dict, Optional, Tuple
 import MetaTrader5 as mt5
 import numpy as np
 
-VERSION = "v1.4.0"
+VERSION = "v1.4.1"
 
 _UNSET = object()
 
@@ -132,6 +140,15 @@ def _load_config(path: str) -> Dict[str, Any]:
         with open(path, "r", encoding="utf-8") as f:
             d = json.load(f)
         return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _load_him_v3_cfg(config_path: str = DEFAULT_CONFIG_PATH) -> Dict[str, Any]:
+    """Phase 3.1: Load him_v3 section from config.json. Fail-safe: returns {} on any error."""
+    try:
+        cfg = _load_config(_resolve_config_path(config_path))
+        return cfg.get("him_v3", {}) if isinstance(cfg, dict) else {}
     except Exception:
         return {}
 
@@ -1165,6 +1182,41 @@ class MT5Executor:
                 "trade",
             )
             return out
+
+        # ── MTF Cascade Exit Registration (Phase 3.1) ──
+        try:
+            _him_v3 = _load_him_v3_cfg()
+            if _him_v3.get("cascade_exit", {}).get("enabled", False):
+                from mtf_cascade_exit import PositionCtx, get_cascade_system
+
+                cascade_sys = get_cascade_system(self.symbol, self.magic)
+                atr_val = float((signal.get("price") or {}).get("atr") or 1.0)
+
+                cascade_ticket = int(pos_ticket or getattr(result, "order", 0) or 0)
+                if cascade_ticket > 0:
+                    pos_ctx = PositionCtx(
+                        ticket=cascade_ticket,
+                        direction=direction,
+                        entry_price=float(price),
+                        atr_at_entry=atr_val,
+                        volume=float(self.lot),
+                    )
+                    cascade_sys.register(pos_ctx)
+                    self._append_jsonl({
+                        "ts": ts,
+                        "version": VERSION,
+                        "symbol": self.symbol,
+                        "request_id": request_id,
+                        "status": "INFO",
+                        "reason": "CASCADE_REGISTERED",
+                        "ticket": cascade_ticket,
+                        "direction": direction,
+                        "entry_price": float(price),
+                        "atr_at_entry": atr_val,
+                        "volume": float(self.lot),
+                    })
+        except Exception:
+            pass
 
         out = {"status": "ORDER_SENT", "request_id": request_id, "price": price, "position_ticket": pos_ticket, "sltp": sltp_reason}
         self._append_jsonl({"ts": ts, "version": VERSION, "symbol": self.symbol, "request_id": request_id, **out, "direction": direction, "ai_confirm": signal.get("ai_confirm", None), "plan": plan})
