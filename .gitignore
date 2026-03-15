@@ -1,6 +1,13 @@
 .env
 _PY_QUARANTINE_/config.py
 _PY_QUARANTINE_/ai_signal_tester.py
+.venv/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+runtime/
+Run script
+สิ่งที่ตรวจพบว่าไม่มีจริง.txt
 .state/
 .commission_event_state.json
 .execution_dedup_state.json

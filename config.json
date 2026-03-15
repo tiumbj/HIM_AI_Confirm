@@ -133,11 +133,11 @@
   "him_v3": {
     "_comment": "HIM v3 MTF Cascade Exit System — ห้ามแก้โดยไม่ผ่าน plan",
     "candle_trigger": {
-      "enabled": false,
+      "enabled": true,
       "timeframe": "M1"
     },
     "cascade_exit": {
-      "enabled": false
+      "enabled": true
     },
     "fast_ai_confirm": {
       "enabled": false,

@@ -36,6 +36,13 @@ from typing import Dict, Optional, List, Any, Tuple
 APP_VERSION = "v1.0.1"
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
+except Exception:
+    pass
+
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 WATCHDOG_LOG = os.path.join(LOG_DIR, "watchdog_supervisor.jsonl")
 

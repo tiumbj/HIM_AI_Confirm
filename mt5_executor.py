@@ -1,14 +1,20 @@
-﻿# ============================================================
+# ============================================================
 # ชื่อโค้ด: HIM MT5 Executor (mt5_executor.py)
 # ที่อยู่ไฟล์: c:\Data\Bot\HIM_AI_Confirm\mt5_executor.py
 # คำสั่งรัน: python mt5_executor.py
-# เวอร์ชัน: v1.4.1
+# เวอร์ชัน: v1.4.2
 # ============================================================
 """
 mt5_executor.py
-Version: v1.4.1
+Version: v1.4.2
 Purpose: MT5 Execution Guard + AI Final Confirm Gate + Request Dedup + Execution Logging
          (Production Safe Execution for HIM)
+
+========================================================
+CHANGELOG (v1.4.2)
+========================================================
+- FIX: Start MTF Cascade Exit background loop in production process (exit monitoring actually runs)
+- ADD: Bootstrap-register existing open positions for cascade monitoring (best-effort, fail-safe)
 
 ========================================================
 CHANGELOG (v1.4.1)
@@ -59,7 +65,7 @@ from typing import Any, Dict, Optional, Tuple
 import MetaTrader5 as mt5
 import numpy as np
 
-VERSION = "v1.4.1"
+VERSION = "v1.4.2"
 
 _UNSET = object()
 
@@ -269,6 +275,7 @@ class MT5Executor:
         if not cfg_raw:
             cfg_raw = os.environ.get("HIM_CONFIG") or os.environ.get("HIM_CONFIG_PATH") or DEFAULT_CONFIG_PATH
         settings = _load_execution_settings(str(cfg_raw))
+        self.config_path = str(settings.config_path)
 
         self.magic = int(settings.magic if magic is _UNSET else int(float(magic)))
         self.cooldown_seconds = float(settings.cooldown_seconds if cooldown_seconds is _UNSET else float(cooldown_seconds))
@@ -307,6 +314,69 @@ class MT5Executor:
 
         if not mt5.initialize():
             raise RuntimeError("MT5 initialize failed")
+
+        self._cascade_sys: Optional[Any] = None
+        self._cascade_mtf: Optional[Any] = None
+        self._maybe_start_cascade_exit()
+
+    def _maybe_start_cascade_exit(self) -> None:
+        try:
+            _him_v3 = _load_him_v3_cfg(self.config_path)
+            cascade_cfg = _him_v3.get("cascade_exit", {}) if isinstance(_him_v3, dict) else {}
+            if not (isinstance(cascade_cfg, dict) and cascade_cfg.get("enabled", False)):
+                return
+
+            from mtf_supertrend import MTFSupertrend
+            from mtf_cascade_exit import PositionCtx, get_cascade_system
+
+            self._cascade_mtf = MTFSupertrend(symbol=self.symbol, config_path=self.config_path)
+            self._cascade_sys = get_cascade_system(self.symbol, int(self.magic))
+
+            try:
+                self._cascade_sys.start_background(self._cascade_mtf)
+            except Exception:
+                pass
+
+            try:
+                registered = set(self._cascade_sys.registered_tickets())
+            except Exception:
+                registered = set()
+
+            positions = mt5.positions_get(symbol=self.symbol)
+            if not positions:
+                return
+
+            info = mt5.symbol_info(self.symbol)
+            point = float(getattr(info, "point", 0.0) or 0.0) if info is not None else 0.0
+            atr_price = 1.0
+            if point > 0:
+                atr_points = self.get_atr_points(point)
+                if atr_points is not None and atr_points > 0:
+                    atr_price = float(atr_points) * float(point)
+
+            for p in positions:
+                if getattr(p, "magic", None) != int(self.magic):
+                    continue
+                ticket = int(getattr(p, "ticket", 0) or 0)
+                if ticket <= 0 or ticket in registered:
+                    continue
+                p_type = getattr(p, "type", None)
+                direction = "BUY" if int(p_type) == 0 else "SELL"
+                entry_price = float(getattr(p, "price_open", 0.0) or 0.0)
+                volume = float(getattr(p, "volume", 0.0) or 0.0)
+                if entry_price <= 0 or volume <= 0:
+                    continue
+
+                pos_ctx = PositionCtx(
+                    ticket=ticket,
+                    direction=direction,
+                    entry_price=float(entry_price),
+                    atr_at_entry=float(atr_price),
+                    volume=float(volume),
+                )
+                self._cascade_sys.register(pos_ctx)
+        except Exception:
+            return
 
     # -----------------------------
     # Helpers
@@ -1185,7 +1255,7 @@ class MT5Executor:
 
         # ── MTF Cascade Exit Registration (Phase 3.1) ──
         try:
-            _him_v3 = _load_him_v3_cfg()
+            _him_v3 = _load_him_v3_cfg(self.config_path)
             if _him_v3.get("cascade_exit", {}).get("enabled", False):
                 from mtf_cascade_exit import PositionCtx, get_cascade_system
 
