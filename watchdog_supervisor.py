@@ -1,6 +1,6 @@
 # ============================================================
 #  watchdog_supervisor.py — HIM Auto Crash Recovery Supervisor
-#  Version: v1.0.1
+#  Version: v1.0.2
 #  Created: 2026-03-05
 #
 #  Strategy Header (Project Rule):
@@ -10,10 +10,16 @@
 #
 #  Managed processes:
 #   1) python api_server.py
-#   2) python mentor_executor.py   (forced DRY_RUN=1 if KILL_SWITCH exists)
-#   3) streamlit run intelligent_dashboard.py --server.port <port>
+#   2) python risk_guard_hardstop.py
+#   3) python trade_analytics.py --daemon
+#   4) python mentor_executor.py   (forced DRY_RUN=1 if KILL_SWITCH exists)
+#   5) python cascade_runner.py    (only when him_v3.cascade_exit.enabled = true)
 #
 #  Changelog:
+#   - v1.0.2 (Phase 3.2 part B):
+#       * Add cascade_runner.py to supervised process list
+#       * Include cascade_runner only when him_v3.cascade_exit.enabled = true
+#       * Preserve existing supervision behavior for all other processes
 #   - v1.0.1 (Phase 7):
 #       * Use __file__-based PROJECT_ROOT for deterministic KILL_SWITCH path
 #   - v1.0.0:
@@ -33,7 +39,7 @@ import time
 from dataclasses import dataclass
 from typing import Dict, Optional, List, Any, Tuple
 
-APP_VERSION = "v1.0.1"
+APP_VERSION = "v1.0.3"
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -189,6 +195,14 @@ def main() -> int:
     # Default DRY_RUN for mentor (can override by env)
     default_dry_run = str(cfg.get("commissioning", {}).get("dry_run", 0)) if isinstance(cfg.get("commissioning", {}), dict) else "0"
 
+    him_v3_cfg = cfg.get("him_v3", {}) if isinstance(cfg.get("him_v3", {}), dict) else {}
+    cascade_exit_cfg = him_v3_cfg.get("cascade_exit", {}) if isinstance(him_v3_cfg.get("cascade_exit", {}), dict) else {}
+    cascade_exit_enabled = bool(cascade_exit_cfg.get("enabled", False))
+
+    dash_state_path = os.environ.get("DASH_STATE_PATH", "").strip()
+    if not dash_state_path:
+        dash_state_path = os.path.join(PROJECT_ROOT, "runtime", "dashboard_state.json")
+
     procs: List[ManagedProc] = [
         ManagedProc(
             name="api_server",
@@ -209,6 +223,15 @@ def main() -> int:
             env=_make_env({}),
         ),
         ManagedProc(
+            name="dashboard_state",
+            cmd=[sys.executable, "dashboard_state_builder.py"],
+            cwd=PROJECT_ROOT,
+            env=_make_env({
+                "DASH_STATE_PATH": dash_state_path,
+                "HIM_CONFIG_PATH": CONFIG_PATH,
+            }),
+        ),
+        ManagedProc(
             name="mentor_executor",
             cmd=[sys.executable, "mentor_executor.py"],
             cwd=PROJECT_ROOT,
@@ -218,15 +241,25 @@ def main() -> int:
                 "DRY_RUN": default_dry_run,
             }),
         ),
-       # ManagedProc(
-       #    name="dashboard",
-    #       cmd=["streamlit", "run", "intelligent_dashboard.py", "--server.port", str(dash_port), "--server.address", dash_host],
-         #  cwd=PROJECT_ROOT,
-    #     env=_make_env({
+        # ManagedProc(
+        #    name="dashboard",
+        #    cmd=["streamlit", "run", "intelligent_dashboard.py", "--server.port", str(dash_port), "--server.address", dash_host],
+        #    cwd=PROJECT_ROOT,
+        #    env=_make_env({
         #        "HIM_API_BASE": api_base,
         #    }),
-        #),
+        # ),
     ]
+
+    if cascade_exit_enabled:
+        procs.append(
+            ManagedProc(
+                name="cascade_runner",
+                cmd=[sys.executable, "cascade_runner.py"],
+                cwd=PROJECT_ROOT,
+                env=_make_env({}),
+            )
+        )
 
     running = True
 
@@ -246,6 +279,8 @@ def main() -> int:
         "config_path": CONFIG_PATH,
         "api_base": api_base,
         "dashboard": {"host": dash_host, "port": dash_port},
+        "dash_state_path": dash_state_path,
+        "cascade_exit_enabled": cascade_exit_enabled,
     })
 
     # Start all processes once
