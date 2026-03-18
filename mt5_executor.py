@@ -509,7 +509,16 @@ class MT5Executor:
     def symbol_check(self) -> Tuple[bool, Any]:
         info = mt5.symbol_info(self.symbol)
         if info is None:
-            return False, "symbol_not_found"
+            # Try to re-initialize if connection was lost
+            if not mt5.initialize():
+                err = mt5.last_error()
+                if err and err[0] == -6:
+                    print("[WARNING] MT5 Executor: Authorization Failed! Terminal needs login.")
+                return False, f"mt5_initialize_failed_or_symbol_not_found:{err}"
+            
+            info = mt5.symbol_info(self.symbol)
+            if info is None:
+                return False, "symbol_not_found"
 
         if not info.visible:
             ok = mt5.symbol_select(self.symbol, True)
@@ -1187,7 +1196,7 @@ class MT5Executor:
             "tp": tp_f,
             "deviation": int(deviation),
             "magic": int(self.magic),
-            "comment": "HIM_MT5_EXECUTOR",
+            "comment": "HIM_AI_Confirm",
             "type_time": mt5.ORDER_TIME_GTC,
             "type_filling": mt5.ORDER_FILLING_IOC,
         }

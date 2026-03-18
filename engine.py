@@ -308,8 +308,12 @@ class TradingEngine:
     def _ensure_mt5(self) -> None:
         if mt5 is None:
             raise RuntimeError("MetaTrader5 package not available.")
+        # Try to initialize if not connected or if last error was Authorization failed
         if not mt5.initialize():
-            raise RuntimeError(f"mt5.initialize() failed: {mt5.last_error()}")
+            err = mt5.last_error()
+            if err and err[0] == -6:
+                print("[WARNING] MT5 Authorization Failed! Terminal needs login.")
+            # We don't raise error here, we let it try to fetch and fail gracefully, returning empty df.
 
     def _fetch_rates(self, symbol: str, timeframe: str, n: int) -> pd.DataFrame:
         self._ensure_mt5()
@@ -371,7 +375,13 @@ class TradingEngine:
             "bb_lower": float(bbl) if np.isfinite(bbl) else np.nan,
         }
 
-    def _derive_htf_bias(self, htf_bundle: Dict[str, Any]) -> str:
+    def _derive_htf_bias(self, htf_bundle: Dict[str, Any], mtf_bundle: Dict[str, Any] = None) -> str:
+        # Use HTF bias primarily, but if we want to catch faster M15 trends,
+        # we can align with MTF if it's strong.
+        # For profitability and fast adaptation, we use MTF (M15) as the main bias if available.
+        if mtf_bundle and mtf_bundle.get("ok"):
+            return "bullish" if int(mtf_bundle["st_dir"]) > 0 else "bearish"
+        
         if not htf_bundle.get("ok"):
             return "unknown"
         return "bullish" if int(htf_bundle["st_dir"]) > 0 else "bearish"
@@ -456,7 +466,8 @@ class TradingEngine:
         ltf = self._compute_tf_bundle(symbol, self.cfg.ltf)
         ev = self._compute_tf_bundle(symbol, event_timeframe)
 
-        bias = self._derive_htf_bias(htf)
+        # Fix bias conflict: use MTF bias to catch 400-500 point moves earlier
+        bias = self._derive_htf_bias(htf, mtf)
 
         gates: Dict[str, bool] = {}
         metrics: Dict[str, Any] = {}
@@ -505,7 +516,7 @@ class TradingEngine:
             conflict = True
 
         relaxed = False
-        if event_timeframe == "M1" and conflict:
+        if event_timeframe in ("M1", "M5", "M15") and conflict:
             if (not np.isnan(st_dist_atr)) and (st_dist_atr <= float(self.cfg.st_relax_dist_atr_m1)):
                 relaxed = True
 

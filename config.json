@@ -62,13 +62,13 @@
     "H1"
   ],
   "decision_min_agree": 2,
-  "bos_break_atr_min": 0.12,
+  "bos_break_atr_min": 0.10,
   "bos_lookback": 12,
-  "st_relax_dist_atr_m1": 0.6,
-  "bb_width_atr_min": 0.8,
-  "bb_width_atr_min_m1": 0.55,
-  "rr_sl_atr": 1.25,
-  "rr_base_tp_atr": 1.9,
+  "st_relax_dist_atr_m1": 0.8,
+  "bb_width_atr_min": 0.7,
+  "bb_width_atr_min_m1": 0.5,
+  "rr_sl_atr": 1.2,
+  "rr_base_tp_atr": 1.8,
   "trend_entry": {
     "enabled": true,
     "min_align": 1,
@@ -78,16 +78,16 @@
     "enabled": true,
     "dry_run": 0,
     "event_timeframes": [
-      "M1"
+      "M1", "M5", "M15"
     ]
   },
   "execution": {
-    "magic": 202603,
+    "magic": 123900,
     "lot": 0.01,
     "max_spread_points": 80,
     "deviation_min": 20,
     "deviation_spread_mult": 2.0,
-    "cooldown_seconds": 20,
+    "cooldown_seconds": 5,
     "atr_period": 14,
     "atr_multiplier": 0.2,
     "timeframe": "M5",
@@ -101,8 +101,8 @@
       "trade",
       "error"
     ],
-    "token_env": "TELEGRAM_BOT_TOKEN_TRADE",
-    "chat_id_env": "TELEGRAM_TRADE_CHAT_ID"
+    "token_env": "TELEGRAM_BOT_TOKEN",
+    "chat_id_env": "TELEGRAM_CHAT_ID"
   },
   "ai_confirm": {
     "use_llm": true,
@@ -131,7 +131,7 @@
     "min_trades_for_analysis": 10
   },
   "him_v3": {
-    "_comment": "HIM v3 MTF Cascade Exit System — ห้ามแก้โดยไม่ผ่าน plan",
+    "_comment": "HIM v3 MTF Cascade Exit System",
     "candle_trigger": {
       "enabled": true,
       "timeframe": "M1"
@@ -140,10 +140,10 @@
       "enabled": true
     },
     "fast_ai_confirm": {
-      "enabled": false,
-      "fast_approve_min_align": 3,
-      "fast_approve_min_rr": 1.5,
-      "fast_reject_max_rr": 1.2,
+      "enabled": true,
+      "fast_approve_min_align": 2,
+      "fast_approve_min_rr": 1.3,
+      "fast_reject_max_rr": 1.0,
       "fast_reject_on_blocked": true,
       "fast_reject_on_invalid_decision": true,
       "uncertain_min_rr": 1.2

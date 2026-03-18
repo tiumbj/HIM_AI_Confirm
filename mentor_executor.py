@@ -87,7 +87,7 @@ KILL_SWITCH_PATH = os.path.join(PROJECT_ROOT, "KILL_SWITCH.txt")
 # -----------------------------
 DEFAULT_SIGNAL_URL = "http://127.0.0.1:5000/api/signal_preview"
 DEFAULT_AI_CONFIRM_URL = "http://127.0.0.1:5000/api/ai_confirm"
-DEFAULT_POLL_INTERVAL = 2.0
+DEFAULT_POLL_INTERVAL = 1.0
 DEFAULT_DRY_RUN = "0"
 DEFAULT_SYMBOL = "GOLD"
 

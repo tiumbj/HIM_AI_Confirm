@@ -48,13 +48,12 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import sys
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 
 # ---------------------------------------------------------------------------
 # MT5 import (optional — graceful degradation ใน --test ไม่มี MT5)
@@ -92,9 +91,9 @@ _MT5_TF_SECONDS: Dict[str, int] = {
 }
 
 # Timing constants
-_POLL_NEAR_SEC:   float = 0.05   # polling interval เมื่อใกล้ bar close (< 2s)
-_POLL_NORMAL_SEC: float = 0.20   # polling interval ปกติ (< 10s)
-_POLL_FAR_SEC:    float = 1.0    # polling interval เมื่อห่างจาก bar close (> 10s)
+_POLL_NEAR_SEC:   float = 0.02   # polling interval เมื่อใกล้ bar close (< 2s)
+_POLL_NORMAL_SEC: float = 0.10   # polling interval ปกติ (< 10s)
+_POLL_FAR_SEC:    float = 0.5    # polling interval เมื่อห่างจาก bar close (> 10s)
 _NEAR_THRESHOLD:  float = 2.0    # วินาทีที่ถือว่า "ใกล้" bar close
 _FAR_THRESHOLD:   float = 10.0   # วินาทีที่ถือว่า "ไกล" bar close
 
@@ -731,7 +730,6 @@ def _run_test(symbol: str, timeframe: str, duration_sec: int, fast_sec: float) -
     print("\n[TEST 3] NewBarEvent construction...")
 
     received_events: List[NewBarEvent] = []
-    errors_in_cb: List[str] = []
 
     def _test_callback(event: NewBarEvent) -> None:
         received_events.append(event)
@@ -809,7 +807,7 @@ def _run_test(symbol: str, timeframe: str, duration_sec: int, fast_sec: float) -
             on_new_candle=_live_callback,
         )
 
-    t_thread = trigger.run_async()
+    _ = trigger.run_async()
     t_deadline = time.monotonic() + duration_sec
 
     # แสดง heartbeat ทุก 5 วินาที
@@ -874,7 +872,7 @@ def _run_test(symbol: str, timeframe: str, duration_sec: int, fast_sec: float) -
             avg_lat = sum(e.latency_ms for e in live_events) / len(live_events)
             print(f"  [INFO] Average latency: {avg_lat:.1f}ms")
             if avg_lat < 200:
-                print(f"  [PASS] Latency < 200ms target ✓")
+                print("  [PASS] Latency < 200ms target ✓")
             else:
                 print(f"  [WARN] Latency {avg_lat:.1f}ms > 200ms target (check connection)")
 

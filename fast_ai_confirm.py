@@ -615,9 +615,7 @@ def _run_tests() -> int:
         "metrics":    {"alignment_score": 3, "rr": 1.5},
         "plan":       {"entry": 2320.0, "sl": 2316.0, "tp": 2326.0},
     }
-    t0 = time.monotonic()
     r_a = fast.confirm_detailed(pkg_a)
-    elapsed_a = (time.monotonic() - t0) * 1000
     _assert("T1-A approved",    r_a.approved,    True)
     _assert("T1-A tier",        r_a.tier,        "approve")
     _assert_not_none("T1-A confidence", r_a.confidence)
@@ -661,9 +659,7 @@ def _run_tests() -> int:
         "metrics":    {"alignment_score": 4, "rr": 1.8},
         "plan":       {"entry": 2320.0, "sl": 2315.0, "tp": 2328.0},
     }
-    t0 = time.monotonic()
     r_d = fast.confirm_detailed(pkg_d)
-    elapsed_d = (time.monotonic() - t0) * 1000
     _assert("T2-D approved",    r_d.approved,    False)
     _assert("T2-D tier",        r_d.tier,        "reject")
     _assert("T2-D confidence",  r_d.confidence,  None)

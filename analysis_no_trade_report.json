@@ -1,115 +1,61 @@
 {
-  "ts_utc": "2026-03-09T01:47:58.358299+00:00",
+  "ts_utc": "2026-03-16T12:10:31.870798+00:00",
   "symbol": "GOLD",
-  "event_timeframe": "M15",
+  "event_timeframe": "M1",
   "timeframes": {
     "htf": "H1",
     "mtf": "M15",
     "ltf": "M5"
   },
-  "steps": 240,
+  "steps": 300,
   "rates_lookback": 600,
-  "elapsed_ms": 295285,
+  "elapsed_ms": 29,
   "decision_counts": [
     {
       "decision": "HOLD",
-      "count": 232
-    },
-    {
-      "decision": "SELL",
-      "count": 7
-    },
-    {
-      "decision": "BUY",
-      "count": 1
+      "count": 300
     }
   ],
-  "tradeable_count": 8,
+  "tradeable_count": 0,
   "top_blockers": [
     {
-      "reason": "no_bos_break",
-      "count": 228
-    },
-    {
-      "reason": "supertrend_conflict",
-      "count": 120
+      "reason": "data_not_ready",
+      "count": 300
     }
   ],
   "tail_samples": [
     {
-      "ts": 1772832600,
+      "ts": 1773668760,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 2.8618942605409576,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 2.346284875703841,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -1.0614902289959791,
-        "bos_break_dn_atr": -2.0688753735042327,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5157.98,
-        "atr": 15.525343097682814
-      }
-    },
-    {
-      "ts": 1772833500,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 2.802696354280572,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 2.2373444609178423,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -0.9976113746576032,
-        "bos_break_dn_atr": -2.0648546841906965,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -117,41 +63,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5159.56,
-        "atr": 14.935675733562645
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1772834400,
+      "ts": 1773668820,
       "decision": "HOLD",
       "blocked_by": [
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 2.901698875138775,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 2.30949646290564,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -1.3415237489754508,
-        "bos_break_dn_atr": -1.814921532821776,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -159,84 +106,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5155.02,
-        "atr": 14.490984609736746
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1772835300,
+      "ts": 1773668880,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 2.919619460889252,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 2.809250323624808,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -1.4885664974684059,
-        "bos_break_dn_atr": -1.485713471119643,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5153.59,
-        "atr": 14.02019999475559
-      }
-    },
-    {
-      "ts": 1772836200,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 2.97795441043186,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 2.5891565745511933,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -1.2237044087921993,
-        "bos_break_dn_atr": -1.7815060650966739,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -244,84 +149,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5157.48,
-        "atr": 13.875899995130192
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1772837100,
+      "ts": 1773668940,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 2.98700228236953,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 2.929836518636553,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -1.5676799613426715,
-        "bos_break_dn_atr": -1.49999973776516,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5153.15,
-        "atr": 13.593335709763755
-      }
-    },
-    {
-      "ts": 1772838000,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 3.026773462363376,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 3.150026855682308,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -0.6823495856633228,
-        "bos_break_dn_atr": -1.9210096615489234,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -329,84 +192,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5165.04,
-        "atr": 13.805240301923451
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1772838900,
+      "ts": 1773669000,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 3.2531150789325687,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 1.8797678778775178,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -0.4789024504561524,
-        "bos_break_dn_atr": -1.9148532418713344,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5168.13,
-        "atr": 13.217723137500407
-      }
-    },
-    {
-      "ts": 1772839800,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 3.4643249180205933,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 3.0919803921464486,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -0.3852912563731116,
-        "bos_break_dn_atr": -1.6588051836883153,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -414,127 +235,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5169.58,
-        "atr": 12.66574291339322
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1772840700,
+      "ts": 1773669060,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 3.624014786555122,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 1.6156309697167324,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -0.10598978692515264,
-        "bos_break_dn_atr": -1.942059018889809,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5173.16,
-        "atr": 12.265332705293668
-      }
-    },
-    {
-      "ts": 1773014400,
-      "decision": "HOLD",
-      "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 2.375279180951991,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 1.3271638194640811,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -1.0340472513899064,
-        "bos_break_dn_atr": -0.5017998269768555,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5157.91,
-        "atr": 17.07852322634416
-      }
-    },
-    {
-      "ts": 1773015300,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 3,
-        "bb_width_atr": 2.0887803491342374,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 2.0923654625307857,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -2.411934365408289,
-        "bos_break_dn_atr": -1.9512401111933164,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -542,41 +278,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5154.78,
-        "atr": 18.255057281605303
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773016200,
+      "ts": 1773669120,
       "decision": "HOLD",
       "blocked_by": [
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 2.091291924574626,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 3.195444055559188,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -3.470893965906436,
-        "bos_break_dn_atr": -0.28991006598648605,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -584,125 +321,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5125.3,
-        "atr": 21.17898176149061
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773017100,
+      "ts": 1773669180,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 2.211941756218202,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 3.5011161934376855,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -3.154447530758881,
-        "bos_break_dn_atr": -1.1170476899816135,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5129.85,
-        "atr": 21.8611973499556
-      }
-    },
-    {
-      "ts": 1773018000,
-      "decision": "SELL",
-      "blocked_by": [],
-      "metrics": {
-        "alignment_score": 3,
-        "bb_width_atr": 2.916109111355415,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 3.554499152622792,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -4.179475596716011,
-        "bos_break_dn_atr": 0.08550587475546327,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
-        "bos_break_ok": true,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 5101.54,
-        "sl": 5124.813254682102,
-        "tp": 5071.284768913268
-      },
-      "price": {
-        "close": 5101.54,
-        "atr": 23.273254682101637
-      }
-    },
-    {
-      "ts": 1773018900,
-      "decision": "HOLD",
-      "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 3.602752744510783,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 2.275093213827274,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -4.209372784191259,
-        "bos_break_dn_atr": -0.47820614054388594,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -710,82 +364,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5104.36,
-        "atr": 22.43802220480866
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773019800,
-      "decision": "SELL",
-      "blocked_by": [],
+      "ts": 1773669240,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
       "metrics": {
-        "alignment_score": 3,
-        "bb_width_atr": 4.199755521112904,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 3.0753427152122255,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -5.015956174760871,
-        "bos_break_dn_atr": 0.8341372903177299,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
-        "bos_break_ok": true,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 5072.65,
-        "sl": 5097.801734904465,
-        "tp": 5039.952744624195
-      },
-      "price": {
-        "close": 5072.65,
-        "atr": 25.151734904465204
-      }
-    },
-    {
-      "ts": 1773020700,
-      "decision": "HOLD",
-      "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 4.844606997633206,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 0.897510988143076,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -4.883574651715459,
-        "bos_break_dn_atr": -1.2543686579989803,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -793,84 +407,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5075.9,
-        "atr": 25.16803955414627
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773021600,
+      "ts": 1773669300,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 5.560637391585062,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 3.678885939092668,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -5.994767448051105,
-        "bos_break_dn_atr": 0.29971993944195296,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5036.2,
-        "atr": 27.1253224431358
-      }
-    },
-    {
-      "ts": 1773022500,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 6.299595371008659,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 3.114677425693897,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -5.741754184660575,
-        "bos_break_dn_atr": -0.6576590828664733,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -878,84 +450,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5045.85,
-        "atr": 26.639942268626097
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773023400,
+      "ts": 1773669360,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 6.9132819757239234,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 2.7070905269729852,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -5.646755623439527,
-        "bos_break_dn_atr": -0.9391299801998844,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5052.64,
-        "atr": 25.88566067800994
-      }
-    },
-    {
-      "ts": 1773024300,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 7.283461473453025,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 2.927856840515699,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -5.78414582843761,
-        "bos_break_dn_atr": -0.8325164599073015,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -963,41 +493,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5049.78,
-        "atr": 25.765256343866426
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773025200,
+      "ts": 1773669420,
       "decision": "HOLD",
       "blocked_by": [
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 6.708581989975931,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 1.7852850868750387,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -4.483706881242552,
-        "bos_break_dn_atr": -1.5617087239000398,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -1005,84 +536,42 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5072.37,
-        "atr": 28.199880890733137
+        "close": NaN,
+        "atr": NaN
       }
     },
     {
-      "ts": 1773026100,
+      "ts": 1773669480,
       "decision": "HOLD",
       "blocked_by": [
-        "supertrend_conflict",
-        "no_bos_break"
+        "data_not_ready"
       ],
       "metrics": {
-        "alignment_score": 1,
-        "bb_width_atr": 6.91069791238852,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.7,
-        "supertrend_dir_event": 1,
-        "supertrend_distance_atr": 2.750890621076013,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -3.3851176465921875,
-        "bos_break_dn_atr": -2.080710233031312,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
         "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "RANGE"
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
       },
       "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
-        "supertrend_conflict": true,
-        "supertrend_relaxed_m1": false,
-        "supertrend_ok": false,
-        "bos_break_ok": false,
-        "rr_ok": true
-      },
-      "plan": {
-        "entry": 0.0,
-        "sl": 0.0,
-        "tp": 0.0
-      },
-      "price": {
-        "close": 5071.74,
-        "atr": 27.43774654139504
-      }
-    },
-    {
-      "ts": 1773027000,
-      "decision": "HOLD",
-      "blocked_by": [
-        "no_bos_break"
-      ],
-      "metrics": {
-        "alignment_score": 2,
-        "bb_width_atr": 7.042469029761619,
-        "bb_width_atr_min_base": 0.7,
-        "bb_width_atr_min_used": 0.5599999999999999,
-        "supertrend_dir_event": -1,
-        "supertrend_distance_atr": 1.6602056656096633,
-        "st_relax_dist_atr_m1": 1.2,
-        "bos_break_up_atr": -3.239401658407259,
-        "bos_break_dn_atr": -2.4122161488442213,
-        "rr": 1.3,
-        "sl_atr": 1.0,
-        "tp_atr": 1.3,
-        "min_rr_used": 1.3,
-        "regime": "EXPANSION",
-        "regime_candidate": "EXPANSION"
-      },
-      "gates": {
-        "data_ok": true,
-        "vol_expansion_ok": true,
+        "data_ok": false,
+        "vol_expansion_ok": false,
         "supertrend_conflict": false,
         "supertrend_relaxed_m1": false,
         "supertrend_ok": true,
+        "rr_ok": false,
         "bos_break_ok": false,
-        "rr_ok": true
+        "trend_entry_ok": false
       },
       "plan": {
         "entry": 0.0,
@@ -1090,8 +579,524 @@
         "tp": 0.0
       },
       "price": {
-        "close": 5078.66,
-        "atr": 26.53576464558107
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669540,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669600,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669660,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669720,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669780,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669840,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669900,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773669960,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773670020,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773670080,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773670140,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
+      }
+    },
+    {
+      "ts": 1773670200,
+      "decision": "HOLD",
+      "blocked_by": [
+        "data_not_ready"
+      ],
+      "metrics": {
+        "alignment_score": 0,
+        "bb_width_atr": NaN,
+        "bb_width_atr_min_base": 0.55,
+        "bb_width_atr_min_used": 0.55,
+        "supertrend_dir_event": 0,
+        "supertrend_distance_atr": NaN,
+        "st_relax_dist_atr_m1": 0.6,
+        "rr": NaN,
+        "sl_atr": 1.25,
+        "tp_atr": NaN,
+        "min_rr_used": 1.3,
+        "regime": "RISK_OFF",
+        "regime_candidate": "RISK_OFF",
+        "bos_break_up_atr": NaN,
+        "bos_break_dn_atr": NaN
+      },
+      "gates": {
+        "data_ok": false,
+        "vol_expansion_ok": false,
+        "supertrend_conflict": false,
+        "supertrend_relaxed_m1": false,
+        "supertrend_ok": true,
+        "rr_ok": false,
+        "bos_break_ok": false,
+        "trend_entry_ok": false
+      },
+      "plan": {
+        "entry": 0.0,
+        "sl": 0.0,
+        "tp": 0.0
+      },
+      "price": {
+        "close": NaN,
+        "atr": NaN
       }
     }
   ]

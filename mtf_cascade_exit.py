@@ -49,7 +49,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -1030,14 +1030,14 @@ def _run_dry_test(duration_sec: int = 60) -> int:
         print(f"  [FAIL] register: expected 2, got {sys_test.position_count()}")
         fail_count += 1
     else:
-        print(f"  [PASS] register: 2 positions ✓")
+        print("  [PASS] register: 2 positions ✓")
 
     sys_test.unregister(10001)
     if sys_test.position_count() != 1:
         print(f"  [FAIL] unregister: expected 1, got {sys_test.position_count()}")
         fail_count += 1
     else:
-        print(f"  [PASS] unregister: 1 remains ✓")
+        print("  [PASS] unregister: 1 remains ✓")
 
     # ─── Test 4: run_once() dry loop (duration_sec) ───────────────────────
     # FIX-2: ควบคุม lifecycle ด้วย _dry_pos_alive flag

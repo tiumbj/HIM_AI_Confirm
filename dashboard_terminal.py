@@ -220,9 +220,9 @@ def _merge_columns(left: List[str], right: List[str], left_width: int, right_wid
     n = max(len(left), len(right))
     out: List[str] = []
     for i in range(n):
-        l = left[i] if i < len(left) else ""
-        r = right[i] if i < len(right) else ""
-        out.append(_pad_visible(l, lw) + g + _pad_visible(r, rw))
+        left_str = left[i] if i < len(left) else ""
+        right_str = right[i] if i < len(right) else ""
+        out.append(_pad_visible(left_str, lw) + g + _pad_visible(right_str, rw))
     return out
 
 

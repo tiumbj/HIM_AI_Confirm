@@ -660,7 +660,7 @@ def _run_test(config_path: Optional[str], symbol: Optional[str]) -> int:
                 dir_str = f"+{r.direction}" if r.direction > 0 else str(r.direction)
                 print(f"  {tf:<6} {r.direction_label:<9} {r.st_value:>12.3f} "
                       f"{r.last_close:>12.3f} {r.atr:>9.4f} "
-                      f"{flip_mark:<8} {r.calc_ms:>7.1f}ms  {r.timestamp_utc}")
+                      f"{flip_mark:<8} {dir_str} {r.calc_ms:>7.1f}ms  {r.timestamp_utc}")
                 live_ok += 1
 
             print(f"\n  Total refresh time: {elapsed_ms:.1f}ms "
